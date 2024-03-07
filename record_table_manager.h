@@ -1,0 +1,19 @@
+/*
+ *
+ *
+ */
+
+#pragma once
+#include <string>
+#include <map>
+
+class Record_table_generic;
+
+class Record_table_manager
+{
+public:
+    Record_table_manager(const std::map<std::string, Record_table_generic &> &);
+
+private:
+    std::map<std::string, Record_table_generic &> m_tables;
+};
