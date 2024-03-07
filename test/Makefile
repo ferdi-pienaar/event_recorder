@@ -87,4 +87,5 @@ record_table_test: record_table_test.o gtest_main.a $(OBJS)
 # -include means don't print an error message if the .d files don't exist.
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(subst .o,.d,$(OBJS))
+-include record_table_test.d
 endif

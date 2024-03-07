@@ -19,23 +19,27 @@ class Record_table : public Record_table_generic
 public:
     Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT);
     ~Record_table();
-    // Client calls advance before write_entry, unless it wants to access the
-    // current entry again, to overwrite it or add something.
-    Record_table & advance();
-    ENTRY & write_entry();
-    ENTRY * next(ENTRY * entry) const;
+    // Client uses default complete=true if it wants to move on the next entry, or false
+    // if it wants to access the current entry again.
+    ENTRY & write_entry(bool complete = true);
+    // Client may call done after write_entry, to move on to next entry.
+    // Calling write_entry(false) followed by done is equivalent to calling write_entry
+    // without params.
+    void done();
     bool enable(bool);
     bool size(unsigned);
-    void clear();
+    bool clear();
 
     friend class Record_table_iterator<ENTRY>;
 
 private:
     void allocate_entries();
     void free_entries();
+    void advance();
+    ENTRY * next(ENTRY * entry) const;
 
     ENTRY * m_entries = nullptr;
-    ENTRY * m_write = nullptr; // Last entry written to.
+    ENTRY * m_write = nullptr; // Entry to write to.
     ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
     ENTRY m_dummy_entry; // Entry returned to client if disabled.
 };
@@ -56,27 +60,27 @@ Record_table<ENTRY>::~Record_table()
 }
 
 template <typename ENTRY>
-Record_table<ENTRY> & Record_table<ENTRY>::advance()
+ENTRY & Record_table<ENTRY>::write_entry(bool complete)
 {
-    if (m_config.m_enabled)
-    {
-        m_write = next(m_write);
-        if (m_num_advances < m_config.m_size)
-        {
-            ++m_num_advances;
-        }
-    }
-    return *this;
-}
-
-template <typename ENTRY>
-ENTRY & Record_table<ENTRY>::write_entry()
-{
-    if (!m_config.m_enabled)
+    if (!active())
     {
         return m_dummy_entry;
     }
-    return *m_write;
+    ENTRY & entry = *m_write;
+    if (complete)
+    {
+        advance();
+    }
+    return entry;
+}
+
+template <typename ENTRY>
+void Record_table<ENTRY>::done()
+{
+    if (active())
+    {
+        advance();
+    }
 }
 
 template <typename ENTRY>
@@ -91,17 +95,30 @@ ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const
     return n;
 }
 
+template <typename ENTRY>
+void Record_table<ENTRY>::advance()
+{
+    m_write = next(m_write);
+    if (m_num_advances < m_config.m_size)
+    {
+        ++m_num_advances;
+    }
+    if (m_config.m_oneshot && (m_num_advances == m_config.m_size))
+    {
+        m_stopped = true;
+    }
+}
+
 // @pre no memory allocated currently.
 template <typename ENTRY>
 void Record_table<ENTRY>::allocate_entries()
 {
     assert(m_entries == nullptr);
 
-    m_entries = new ENTRY(m_config.m_size);
+    m_entries = new ENTRY[m_config.m_size];
     m_end = m_entries + m_config.m_size;
 
-    // Point to last entry, since client should advance before writing.
-    m_write = m_end - 1;
+    m_write = m_entries;
 }
 
 template <typename ENTRY>
@@ -117,16 +134,23 @@ void Record_table<ENTRY>::free_entries()
 
 // This clears what has been written, but does not free entry memory.
 template <typename ENTRY>
-void Record_table<ENTRY>::clear()
+bool Record_table<ENTRY>::clear()
 {
+    if (m_config.m_enabled)
+    {
+        return false;
+    }
+
     m_num_advances = 0;
-    m_write = m_end - 1;
+    m_write = m_entries;
+    m_stopped = false;
+    return true;
 }
 
 template <typename ENTRY>
-bool Record_table<ENTRY>::enable(bool enable)
+bool Record_table<ENTRY>::enable(bool ena)
 {
-    if (enable)
+    if (ena)
     {
         if (m_config.m_size == 0)
         {
@@ -140,7 +164,7 @@ bool Record_table<ENTRY>::enable(bool enable)
             allocate_entries();
         }
     }
-    m_config.m_enabled = enable;
+    m_config.m_enabled = ena;
     return true;
 }
 

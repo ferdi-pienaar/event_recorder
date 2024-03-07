@@ -14,7 +14,7 @@ public:
     Record_table_iterator(const Record_table<ENTRY> & table);
     void begin();
     void next();
-    ENTRY & get_current();
+    const ENTRY & get_current();
     bool end() const;
 
 private:
@@ -34,17 +34,17 @@ void Record_table_iterator<ENTRY>::begin()
 {
     if (m_table.m_num_advances == m_table.m_config.m_size)
     {
-        // All entries filled, so start with successor to the last one written,
+        // All entries filled, so start with next to be written,
         // and end when we've returned there.
-        m_current = m_table.next(m_table.m_write);
+        m_current = m_table.m_write;
         m_end = m_current;
     }
     else
     {
         // All entries not filled, so start with the first entry in the array,
-        // and end at the last one written.
+        // and end at the next to be written.
         m_current = m_table.m_entries;
-        m_end = m_current + m_table.m_num_advances;
+        m_end = m_table.m_write;
     }
     m_moved = false;
 }
@@ -57,7 +57,7 @@ void Record_table_iterator<ENTRY>::next()
 }
 
 template <typename ENTRY>
-ENTRY & Record_table_iterator<ENTRY>::get_current()
+const ENTRY & Record_table_iterator<ENTRY>::get_current()
 {
     return *m_current;
 }
