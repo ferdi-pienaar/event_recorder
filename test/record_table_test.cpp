@@ -197,19 +197,19 @@ TEST_F(Record_table_test, oneshot)
     EXPECT_TRUE(table_iter.end());
 }
 
-TEST_F(Record_table_test, mgr)
+void dummy_cb(const std::array<timespec, 2> & entry)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable());
-
-    Record_table_manager mgr({{"int-table", rtable}});
+    for (auto const & t : entry)
+    {
+        std::cout << "entry size " << entry.size() << " " << t.tv_sec << "." << t.tv_nsec << std::endl;
+    }
 }
 
-// int clock_gettime(clockid_t clockid, struct timespec *tp);
 TEST_F(Record_table_test, timespec_record_2)
 {
     using Double_stamp = std::array<timespec, 2>;
     constexpr unsigned NUM_ENTRIES = 5;
-    Record_table<Double_stamp> rtable(Record_table_config().size(NUM_ENTRIES).enable());
+    Record_table<Double_stamp> rtable(Record_table_config().size(NUM_ENTRIES).enable(), dummy_cb);
 
     for (unsigned i = 0; i < NUM_ENTRIES * 2; ++i)
     {
@@ -218,12 +218,20 @@ TEST_F(Record_table_test, timespec_record_2)
         clock_gettime(CLOCK_REALTIME, &w_entry[1]);
     }
 
-    Record_table_iterator<Double_stamp> table_iter(rtable);
-    table_iter.begin();
-    for (table_iter.begin(); !table_iter.end(); table_iter.next())
-    {
-        auto const & r_entry = table_iter.get_current();
-        std::cout << "s begin " << r_entry[0].tv_sec << "." << r_entry[0].tv_nsec << std::endl;
-        std::cout << "s end   " << r_entry[1].tv_sec << "." << r_entry[1].tv_nsec << std::endl;
-    }
+    rtable.do_callback();
+}
+
+void dummy_int_cb(const int & entry)
+{
+    std::cout << "int entry " << entry << std::endl;
+}
+
+TEST_F(Record_table_test, mgr)
+{
+    Record_table<int> rtable(Record_table_config().size(12).enable(), dummy_int_cb);
+
+    rtable.write_entry() = 11001;
+
+    Record_table_manager mgr({{"int-table", rtable}});
+    mgr.callback_entries("int-table");
 }
