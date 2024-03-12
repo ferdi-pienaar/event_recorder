@@ -14,7 +14,10 @@ public:
     bool enabled() const;
     bool oneshot(bool);
     bool active() const;
-    virtual void do_callback() const = 0;
+    virtual bool enable(bool) = 0;
+    virtual bool size(unsigned) = 0;
+    virtual bool clear() = 0;
+    virtual void dump() const = 0;
 
 protected:
     Record_table_config m_config;

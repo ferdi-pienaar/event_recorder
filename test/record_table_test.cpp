@@ -218,7 +218,7 @@ TEST_F(Record_table_test, timespec_record_2)
         clock_gettime(CLOCK_REALTIME, &w_entry[1]);
     }
 
-    rtable.do_callback();
+    rtable.dump();
 }
 
 void dummy_int_cb(const int & entry)
@@ -233,5 +233,19 @@ TEST_F(Record_table_test, mgr)
     rtable.write_entry() = 11001;
 
     Record_table_manager mgr({{"int-table", rtable}});
-    mgr.callback_entries("int-table");
+    mgr.dump_tables("int-t");
+}
+
+TEST_F(Record_table_test, mgr_match2)
+{
+    Record_table<int> rtable(Record_table_config().size(12).enable(), dummy_int_cb);
+    Record_table<int> rtable2(Record_table_config().size(12).enable(), dummy_int_cb);
+    Record_table<int> rtable3(Record_table_config().size(12).enable(), dummy_int_cb);
+
+    rtable.write_entry() = 11001;
+    rtable2.write_entry() = 2202;
+    rtable3.write_entry() = 333;
+
+    Record_table_manager mgr({{"int-table", rtable}, {"table2", rtable2}, {"bint-t", rtable3}});
+    mgr.dump_tables("int-t");
 }

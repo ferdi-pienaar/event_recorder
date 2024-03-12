@@ -18,9 +18,9 @@ template <typename ENTRY>
 class Record_table : public Record_table_generic
 {
 public:
-    using CALLBACK = void (*)(const ENTRY &);
+    using DUMP_CALLBACK = void (*)(const ENTRY &);
 
-    Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT, CALLBACK cb = nullptr);
+    Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT, DUMP_CALLBACK cb = nullptr);
     ~Record_table();
     // Client uses default complete=true if it wants to move on the next entry, or false
     // if it wants to access the current entry again.
@@ -29,11 +29,11 @@ public:
     // Calling write_entry(false) followed by done is equivalent to calling write_entry
     // without params.
     void done();
-    bool enable(bool);
-    bool size(unsigned);
-    bool clear();
-    // Call the registered callback for each written entry.
-    void do_callback() const override;
+    bool enable(bool) override;
+    bool size(unsigned) override;
+    bool clear() override;
+    // Call the registered dump callback for each written entry.
+    void dump() const override;
 
     friend class Record_table_iterator<ENTRY>;
 
@@ -47,13 +47,13 @@ private:
     ENTRY * m_write = nullptr; // Entry to write to.
     ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
     ENTRY m_dummy_entry; // Entry returned to client if disabled.
-    CALLBACK m_cb = nullptr;
+    DUMP_CALLBACK m_dump_cb = nullptr;
 };
 
 template <typename ENTRY>
-Record_table<ENTRY>::Record_table(const Record_table_config & config, CALLBACK cb) :
+Record_table<ENTRY>::Record_table(const Record_table_config & config, DUMP_CALLBACK cb) :
     Record_table_generic(config),
-    m_cb(cb)
+    m_dump_cb(cb)
 {
     if (m_config.m_enabled)
     {
@@ -195,15 +195,15 @@ bool Record_table<ENTRY>::size(unsigned size)
 
 // xxx only if not enabled?
 template <typename ENTRY>
-void Record_table<ENTRY>::do_callback() const
+void Record_table<ENTRY>::dump() const
 {
-    if (m_cb == nullptr)
+    if (m_dump_cb == nullptr)
     {
         return;
     }
     Record_table_iterator<ENTRY> iter(*this);
     for (iter.begin(); !iter.end(); iter.next())
     {
-        m_cb(iter.get_current());
+        m_dump_cb(iter.get_current());
     }
 }
