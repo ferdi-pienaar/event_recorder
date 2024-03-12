@@ -10,7 +10,9 @@
 class Record_table_generic
 {
 public:
-    Record_table_generic(const Record_table_config & );
+    using DUMP_STATE_CALLBACK = void (*)(const Record_table_generic &);
+
+    Record_table_generic(const Record_table_config &, DUMP_STATE_CALLBACK dump_state);
     bool enabled() const;
     bool oneshot(bool);
     bool active() const;
@@ -18,9 +20,13 @@ public:
     virtual bool size(unsigned) = 0;
     virtual bool clear() = 0;
     virtual void dump() const = 0;
+    void dump_state() const;
+    const Record_table_config & get_config() const { return m_config; }
+    bool is_stopped() const { return m_stopped; }
 
 protected:
     Record_table_config m_config;
+    const DUMP_STATE_CALLBACK m_dump_state = nullptr;
     unsigned m_num_advances = 0; // Number of write advances, capped at config.size.
     bool m_stopped = false; // One-shot full => true, clear => false. xxx could also be in Record_table.
 };

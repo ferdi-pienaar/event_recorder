@@ -9,7 +9,6 @@
 #include <vector>
 #include <map>
 #include <assert.h>
-#include <iostream>
 
 template <typename ENTRY>
 class Record_table_iterator;
@@ -20,7 +19,9 @@ class Record_table : public Record_table_generic
 public:
     using DUMP_CALLBACK = void (*)(const ENTRY &);
 
-    Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT, DUMP_CALLBACK cb = nullptr);
+    Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT,
+                 DUMP_CALLBACK cb = nullptr,
+                 Record_table_generic::DUMP_STATE_CALLBACK dump_state_cb = nullptr);
     ~Record_table();
     // Client uses default complete=true if it wants to move on the next entry, or false
     // if it wants to access the current entry again.
@@ -47,12 +48,14 @@ private:
     ENTRY * m_write = nullptr; // Entry to write to.
     ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
     ENTRY m_dummy_entry; // Entry returned to client if disabled.
-    DUMP_CALLBACK m_dump_cb = nullptr;
+    const DUMP_CALLBACK m_dump_cb = nullptr;
 };
 
 template <typename ENTRY>
-Record_table<ENTRY>::Record_table(const Record_table_config & config, DUMP_CALLBACK cb) :
-    Record_table_generic(config),
+Record_table<ENTRY>::Record_table(const Record_table_config & config,
+                                  DUMP_CALLBACK cb,
+                                  Record_table_generic::DUMP_STATE_CALLBACK dump_state_cb) :
+    Record_table_generic(config, dump_state_cb),
     m_dump_cb(cb)
 {
     if (m_config.m_enabled)

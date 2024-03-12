@@ -2,14 +2,13 @@
  *
  */
 
-//#include <iostream>
+#include <iostream>
 #include "record_table.h"
 #include "record_table_iterator.h"
 #include "record_table_manager.h"
 #include "gtest/gtest.h"
 #include <array>
 #include <time.h> // struct timespec
-
 
 class Record_table_test : public testing::Test
 {
@@ -197,38 +196,44 @@ TEST_F(Record_table_test, oneshot)
     EXPECT_TRUE(table_iter.end());
 }
 
-void dummy_cb(const std::array<timespec, 2> & entry)
+static constexpr unsigned NUM_STAMPS_PER_ENTRY = 2;
+
+void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry)
 {
+    std::cout << "entry size " << entry.size() << std::endl;
+
     for (auto const & t : entry)
     {
-        std::cout << "entry size " << entry.size() << " " << t.tv_sec << "." << t.tv_nsec << std::endl;
+        std::cout << t.tv_sec << "." << t.tv_nsec << std::endl;
     }
 }
 
-TEST_F(Record_table_test, timespec_record_2)
+TEST_F(Record_table_test, timespec_record_array)
 {
-    using Double_stamp = std::array<timespec, 2>;
-    constexpr unsigned NUM_ENTRIES = 5;
-    Record_table<Double_stamp> rtable(Record_table_config().size(NUM_ENTRIES).enable(), dummy_cb);
+    using Double_stamp = std::array<timespec, NUM_STAMPS_PER_ENTRY>;
+    constexpr unsigned NUM_ENTRIES = 3;
+    Record_table<Double_stamp> rtable(Record_table_config().size(NUM_ENTRIES).enable(), dump_ts_array_cb);
 
     for (unsigned i = 0; i < NUM_ENTRIES * 2; ++i)
     {
         auto & w_entry = rtable.write_entry();
-        clock_gettime(CLOCK_REALTIME, &w_entry[0]);
-        clock_gettime(CLOCK_REALTIME, &w_entry[1]);
+        for (unsigned j = 0; j < NUM_STAMPS_PER_ENTRY; ++j)
+        {
+            clock_gettime(CLOCK_REALTIME, &w_entry[j]);
+        }
     }
 
     rtable.dump();
 }
 
-void dummy_int_cb(const int & entry)
+static void dump_int_cb(const int & entry)
 {
     std::cout << "int entry " << entry << std::endl;
 }
 
 TEST_F(Record_table_test, mgr)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable(), dummy_int_cb);
+    Record_table<int> rtable(Record_table_config().size(12).enable(), dump_int_cb);
 
     rtable.write_entry() = 11001;
 
@@ -238,9 +243,9 @@ TEST_F(Record_table_test, mgr)
 
 TEST_F(Record_table_test, mgr_match2)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable(), dummy_int_cb);
-    Record_table<int> rtable2(Record_table_config().size(12).enable(), dummy_int_cb);
-    Record_table<int> rtable3(Record_table_config().size(12).enable(), dummy_int_cb);
+    Record_table<int> rtable(Record_table_config().size(12).enable(), dump_int_cb);
+    Record_table<int> rtable2(Record_table_config().size(12).enable(), dump_int_cb);
+    Record_table<int> rtable3(Record_table_config().size(12).enable(), dump_int_cb);
 
     rtable.write_entry() = 11001;
     rtable2.write_entry() = 2202;
@@ -248,4 +253,20 @@ TEST_F(Record_table_test, mgr_match2)
 
     Record_table_manager mgr({{"int-table", rtable}, {"table2", rtable2}, {"bint-t", rtable3}});
     mgr.dump_tables("int-t");
+}
+
+static void dump_table_state_cb(const Record_table_generic & t)
+{
+    std::cout << "enabled " << t.get_config().m_enabled << std::endl;
+    std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;
+    std::cout << "size " << t.get_config().m_size << std::endl;
+    std::cout << "stopped " << t.is_stopped() << std::endl;
+}
+
+TEST_F(Record_table_test, mgr_state)
+{
+    Record_table<int> rtable(Record_table_config().size(12).enable(), nullptr, dump_table_state_cb);
+
+    Record_table_manager mgr({{"int-table", rtable}});
+    mgr.dump_tables_state("int-t");
 }

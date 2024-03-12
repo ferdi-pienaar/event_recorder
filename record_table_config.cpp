@@ -4,7 +4,6 @@
  */
 
 #include "record_table_config.h"
-#include <iostream>
 
 // Static instance that contains the default values.
 Record_table_config Record_table_config::CONFIG_DEFAULT;
