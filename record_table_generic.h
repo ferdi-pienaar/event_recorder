@@ -13,6 +13,8 @@ public:
     using DUMP_STATE_CALLBACK = void (*)(const Record_table_generic &);
 
     Record_table_generic(const Record_table_config &, DUMP_STATE_CALLBACK dump_state);
+
+    // Operator interface.
     bool enabled() const;
     bool oneshot(bool);
     bool active() const;
@@ -23,6 +25,7 @@ public:
     void dump_state() const;
     const Record_table_config & get_config() const { return m_config; }
     bool is_stopped() const { return m_stopped; }
+    unsigned get_num_writes() const { return m_num_advances; }
 
 protected:
     Record_table_config m_config;

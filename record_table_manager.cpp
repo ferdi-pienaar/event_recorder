@@ -8,8 +8,9 @@
 #include <algorithm>
 
 // xxx nothing prevents client inserting the same Record_table more than once, with a different name.
-Record_table_manager::Record_table_manager(const std::map<std::string, Record_table_generic &> & tables) :
-    m_tables(tables)
+Record_table_manager::Record_table_manager(const std::map<std::string, Record_table_generic &> & tables,
+        DUMP_NAME_CALLBACK dump_name) :
+    m_tables(tables), m_dump_name(dump_name)
 {
 }
 
@@ -64,6 +65,12 @@ void Record_table_manager::do_tables(std::string substring, std::function<void(R
         if (iter == m_tables.end())
         {
             break;
+        }
+
+        // Output the name of the table so client knows which tables matched its input string.
+        if (m_dump_name != nullptr)
+        {
+            m_dump_name(iter->first);
         }
         auto & table = iter->second;
         table_fn(table);

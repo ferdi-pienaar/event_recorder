@@ -23,13 +23,17 @@ public:
                  DUMP_CALLBACK cb = nullptr,
                  Record_table_generic::DUMP_STATE_CALLBACK dump_state_cb = nullptr);
     ~Record_table();
+    // 'Record' interface consists of write_entry and optional done.
+    // Returns a reference to an entry to write to.
     // Client uses default complete=true if it wants to move on the next entry, or false
     // if it wants to access the current entry again.
-    ENTRY & write_entry(bool complete = true);
+    auto & write_entry(bool complete = true);
     // Client may call done after write_entry, to move on to next entry.
-    // Calling write_entry(false) followed by done is equivalent to calling write_entry
+    // Calling write_entry(false) followed by done() is equivalent to calling write_entry
     // without params.
     void done();
+
+    // Operator interface.
     bool enable(bool) override;
     bool size(unsigned) override;
     bool clear() override;
@@ -71,7 +75,7 @@ Record_table<ENTRY>::~Record_table()
 }
 
 template <typename ENTRY>
-ENTRY & Record_table<ENTRY>::write_entry(bool complete)
+auto & Record_table<ENTRY>::write_entry(bool complete)
 {
     if (!active())
     {
