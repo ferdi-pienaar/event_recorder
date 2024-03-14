@@ -40,7 +40,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 # House-keeping build targets.
 
-OBJS = $(USER_DIR)/record_table_generic.o $(USER_DIR)/record_table_config.o $(USER_DIR)/record_table_manager.o
+OBJS = $(USER_DIR)/record_table_generic.o $(USER_DIR)/record_table_config.o
 
 all : $(TESTS)
 

@@ -5,7 +5,7 @@ CXXFLAGS += -MMD
 CPPFLAGS += -I . -I $(USER_DIR)
 #CFLAGS += -save-temps
 
-OBJS = $(USER_DIR)/record_table_generic.o $(USER_DIR)/record_table_config.o $(USER_DIR)/record_table_manager.o \
+OBJS = $(USER_DIR)/record_table_generic.o $(USER_DIR)/record_table_config.o \
  record_table_operator.o record_table_recorder.o record_table_helper.o
 
 record_table_operator: $(OBJS)

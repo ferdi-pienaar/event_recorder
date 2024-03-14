@@ -1,8 +1,8 @@
 /*
  *
  */
-#include "record_table_generic.h"
 #include "record_table_types.h"
+#include "record_table_generic.h"
 #include <string>
 
 void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry);

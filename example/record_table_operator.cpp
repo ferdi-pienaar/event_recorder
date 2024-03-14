@@ -8,12 +8,13 @@
 #include "record_table_iterator.h"
 #include "record_table_manager.h"
 #include "record_table_types.h"
-#include "record_table_defs.h"
 #include "record_table_recorder.h"
 #include "record_table_helper.h"
 
 static void handle_command();
-static void parse(char cmd, std::string name, unsigned param);
+static void parse(std::string domain, char cmd, std::string name, unsigned param);
+template<typename MGR>
+void parse(MGR & mgr, char cmd, std::string name, unsigned param);
 
 int main(int argc, char * argv[])
 {
@@ -27,29 +28,53 @@ int main(int argc, char * argv[])
 void handle_command()
 {
     std::cout << "handle_command" << std::endl;
+
+    std::string domain;
     char cmd;
     std::string name;
     unsigned param;
 
-    std::cin >> cmd >> name >> param;
+    std::cin >> domain >> cmd >> param >> name;
 
-    parse(cmd, name, param);
+    parse(domain, cmd, name, param);
 
     // Flush input buffer? Apparently not.
     std::cin.clear();
 }
 
-Record_table_manager mgr(
+static Record_table<Double_stamp> ttable(Record_table_config().size(NUM_ENTRIES).enable(), dump_ts_array_cb, dump_table_state_cb);
+Record_table_manager<Double_stamp> & get_timestamp_manager()
 {
-    {"time", get_time_record_table()},
-    {"integer", get_int_record_table()}
-},
-dump_name_cb);
+    static Record_table_manager<Double_stamp> mgr({{"time1", ttable}}, dump_name_cb);
+    return mgr;
+}
 
-void parse(char cmd, std::string name, unsigned param)
+static Record_table<int> itable(Record_table_config().size(NUM_ENTRIES).enable(), dump_int_cb, dump_table_state_cb);
+Record_table_manager<int> & get_int_manager()
 {
-    std::cout << cmd << " " << name << " " << param << std::endl;
+    static Record_table_manager<int> mgr({{"int1", itable}}, dump_name_cb);
+    return mgr;
+}
 
+static std::map<std::string, Record_table_manager_interface &> managers = {{"time", get_timestamp_manager()}, {"int", get_int_manager()}};
+
+void parse(std::string domain, char cmd, std::string name, unsigned param)
+{
+    std::cout << "domain: '" << domain << "' cmd " << cmd << " name '" << name << "' param " << param << std::endl;
+
+    if (domain == "time")
+    {
+        parse(get_timestamp_manager(), cmd, name, param);
+    }
+    else
+    {
+        parse(get_int_manager(), cmd, name, param);
+    }
+}
+
+template<typename MGR>
+void parse(MGR & mgr, char cmd, std::string name, unsigned param)
+{
     switch (cmd)
     {
     case 'e': // enable/disable
@@ -71,7 +96,7 @@ void parse(char cmd, std::string name, unsigned param)
         mgr.dump_tables_state(name);
         break;
     case 'r': // record event(s).
-        if (name == "time")
+        if (name == "time1")
         {
             time_event();
         }

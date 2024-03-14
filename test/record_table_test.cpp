@@ -149,6 +149,37 @@ TEST_F(Record_table_test, iterator_next)
     EXPECT_TRUE(table_iter.end());
 }
 
+// Some different ways 'record' clients can write and overwrite entries.
+TEST_F(Record_table_test, table_overwrite)
+{
+    Record_table<int> rtable(Record_table_config().size(12).enable());
+    auto & e1 = rtable.write_entry(); // advance
+    e1 = 13;
+    e1 = 14; // overwrite
+    rtable.write_entry(false) = 15; // no advance, so next line overwrites.
+    rtable.write_entry() = 16; // overwrite
+    rtable.write_entry(false) = 17;
+    rtable.done(); // advance, so next line does not overwrite.
+    rtable.write_entry() = 18;
+
+    Record_table_iterator<int> table_iter(rtable);
+    table_iter.begin();
+    EXPECT_EQ(14, table_iter.get_current());
+
+    table_iter.next();
+    EXPECT_EQ(16, table_iter.get_current());
+
+    table_iter.next();
+    EXPECT_EQ(17, table_iter.get_current());
+
+    table_iter.next();
+    EXPECT_EQ(18, table_iter.get_current());
+
+    // After n written entries, reach the end.
+    table_iter.next();
+    EXPECT_TRUE(table_iter.end());
+}
+
 TEST_F(Record_table_test, rollover)
 {
     Record_table<int> rtable(Record_table_config().size(2).enable());
@@ -237,7 +268,7 @@ TEST_F(Record_table_test, mgr)
 
     rtable.write_entry() = 11001;
 
-    Record_table_manager mgr({{"int-table", rtable}});
+    Record_table_manager<int> mgr({{"int-table", rtable}});
     mgr.dump_tables("int-t");
 }
 
@@ -251,7 +282,7 @@ TEST_F(Record_table_test, mgr_match2)
     rtable2.write_entry() = 2202;
     rtable3.write_entry() = 333;
 
-    Record_table_manager mgr({{"int-table", rtable}, {"table2", rtable2}, {"bint-t", rtable3}});
+    Record_table_manager<int> mgr({{"int-table1", rtable}, {"x", rtable2}, {"int-table3", rtable3}});
     mgr.dump_tables("int-t");
 }
 
@@ -267,6 +298,6 @@ TEST_F(Record_table_test, mgr_state)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable(), nullptr, dump_table_state_cb);
 
-    Record_table_manager mgr({{"int-table", rtable}});
+    Record_table_manager<int> mgr({{"int-table", rtable}});
     mgr.dump_tables_state("int-t");
 }
