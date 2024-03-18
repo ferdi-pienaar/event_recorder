@@ -12,9 +12,7 @@
 #include "record_table_helper.h"
 
 static void handle_command();
-static void parse(std::string domain, char cmd, std::string name, unsigned param);
-template<typename MGR>
-void parse(MGR & mgr, char cmd, std::string name, unsigned param);
+static void parse(const std::string & domain, char cmd, const std::string & name, unsigned param);
 
 int main(int argc, char * argv[])
 {
@@ -58,45 +56,21 @@ Record_table_manager<int> & get_int_manager()
 
 static std::map<std::string, Record_table_manager_interface &> managers = {{"time", get_timestamp_manager()}, {"int", get_int_manager()}};
 
-void parse(std::string domain, char cmd, std::string name, unsigned param)
+void parse(const std::string & domain, char cmd, const std::string & name, unsigned param)
 {
     std::cout << "domain: '" << domain << "' cmd " << cmd << " name '" << name << "' param " << param << std::endl;
 
     if (domain == "time")
     {
-        parse(get_timestamp_manager(), cmd, name, param);
+        get_timestamp_manager().handle_cmd(cmd, name, param);
     }
-    else
+    else if (domain == "int")
     {
-        parse(get_int_manager(), cmd, name, param);
+        get_int_manager().handle_cmd(cmd, name, param);
     }
-}
-
-template<typename MGR>
-void parse(MGR & mgr, char cmd, std::string name, unsigned param)
-{
-    switch (cmd)
+    else if (domain == "event")
     {
-    case 'e': // enable/disable
-        mgr.enable_tables(name, param);
-        break;
-    case 's': // size
-        mgr.size_tables(name, param);
-        break;
-    case 'o': // oneshot/rollover
-        mgr.oneshot_tables(name, param);
-        break;
-    case 'd': // dump
-        mgr.dump_tables(name);
-        break;
-    case 'c': // clear
-        mgr.clear_tables(name);
-        break;
-    case 't': // tables state
-        mgr.dump_tables_state(name);
-        break;
-    case 'r': // record event(s).
-        if (name == "time1")
+        if (name == "time")
         {
             time_event();
         }
@@ -104,9 +78,5 @@ void parse(MGR & mgr, char cmd, std::string name, unsigned param)
         {
             int_event();
         }
-        break;
-
-    default:
-        std::cout << "unknown command" << std::endl;
     }
 }

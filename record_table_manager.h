@@ -19,6 +19,7 @@ public:
     Record_table_manager(const std::map<std::string, Record_table<ENTRY> &> &,
                          DUMP_NAME_CALLBACK dump_name = nullptr);
     Record_table<ENTRY> * get_table(const std::string & name);
+    bool handle_cmd(char cmd, const std::string & substring, unsigned param = 0) const;
     void dump_tables(std::string substring) const override;
     void enable_tables(std::string substring, bool ena) const override;
     void oneshot_tables(std::string substring, bool one) const override;
@@ -53,8 +54,39 @@ Record_table<ENTRY> * Record_table_manager<ENTRY>::get_table(const std::string &
     return &iter->second;
 }
 
+// Operator can use this to handle commands, or it can directly use the virtual functions dump_tables, etc.
+// xxx is it useful to have these 2 APIs, one using virtual functions and the other this command handler?
+template <typename ENTRY>
+bool Record_table_manager<ENTRY>::handle_cmd(char cmd, const std::string & substring, unsigned param) const
+{
+    switch (cmd)
+    {
+    case 'e': // enable/disable
+        enable_tables(substring, param);
+        return true;
+    case 's': // size
+        size_tables(substring, param);
+        return true;
+    case 'o': // oneshot/rollover
+        oneshot_tables(substring, param);
+        return true;
+    case 'd': // dump
+        dump_tables(substring);
+        return true;
+    case 'c': // clear
+        clear_tables(substring);
+        return true;
+    case 't': // tables state
+        dump_tables_state(substring);
+        return true;
+    default:
+        return false;
+    }
+}
+
 // xxx should tables be disabled?
 // xxx for all these functions, also call a callback that takes the table name, so client can dump that?
+// It seems useful since we don't know what may be most convenient for client operator...
 template <typename ENTRY>
 void Record_table_manager<ENTRY>::dump_tables(std::string substring) const
 {
