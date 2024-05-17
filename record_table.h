@@ -1,5 +1,26 @@
 /*
+ * A record table holds data of type given by its template parameter ENTRY.
+ * It has two interfaces (not currently implemented as separate interfaces
+ * in code):
+ * The 'record' interface allows instrumented code to:
+ *  - write_entry returns a writable ENTRY in RAM. This could be e.g.
+ *    a timestamp generated at run-time.
+ *  - Indicate if the entry is complete and the next call to write_entry returns
+ *    a new entry. True by default. If instrumented code chooses 'false', the
+ *    same entry is returned by the next call to write_entry, e.g. to overwrite
+ *    or modify an entry.
  *
+ * The 'operator' interface allows an operator to work with the records of ENTRYs.
+ * - Enable: when enabled, instrumented code saves ENTRYs, else none are saved.
+ * - Size (set size): change max number of ENTRYs that instrumented code can save.
+ * - Clear: deleted saved ENTRYs.
+ * - Dump: call a registered dump function to examine saved ENTRYs.
+ * - Dump state: call a callback funtion to dump state such as enabled/disabled,
+ *   onshot/overwrite mode, size (max), number of saved entries, size, is-stopped
+ *   (e.g. if oneshot and full).
+ * - Change oneshot/overwrite mode: oneshot means write until table is full
+ *   (don't overwrite old entries); overwrite means repeatedly overwrite old entries
+ *   with new ones.
  *
  */
 
@@ -27,16 +48,16 @@ public:
     // Returns a reference to an entry to write to.
     // Client uses default complete=true if it wants to move on the next entry, or false
     // if it wants to access the current entry again.
-    auto & write_entry(bool complete = true);
+    auto & write_entry(bool complete = true) noexcept;
     // Client may call done after write_entry, to move on to next entry.
     // Calling write_entry(false) followed by done() is equivalent to calling write_entry
     // without params.
-    void done();
+    void done() noexcept;
 
     // Operator interface.
-    bool enable(bool) override;
-    bool size(unsigned) override;
-    bool clear() override;
+    bool enable(bool) noexcept override;
+    bool size(unsigned) noexcept override;
+    bool clear() noexcept override;
     // Call the registered dump callback for each written entry.
     void dump() const override;
 
@@ -45,13 +66,13 @@ public:
 private:
     void allocate_entries();
     void free_entries();
-    void advance();
-    ENTRY * next(ENTRY * entry) const;
+    void advance() noexcept;
+    ENTRY * next(ENTRY * entry) const noexcept;
 
     ENTRY * m_entries = nullptr;
     ENTRY * m_write = nullptr; // Entry to write to.
     ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
-    ENTRY m_dummy_entry; // Entry returned to client if disabled.
+    ENTRY m_dummy_entry; // Entry returned to client if disabled: client may write to it without effect.
     const DUMP_CALLBACK m_dump_cb = nullptr;
 };
 
@@ -75,7 +96,7 @@ Record_table<ENTRY>::~Record_table()
 }
 
 template <typename ENTRY>
-auto & Record_table<ENTRY>::write_entry(bool complete)
+auto & Record_table<ENTRY>::write_entry(bool complete) noexcept
 {
     if (!active())
     {
@@ -90,7 +111,7 @@ auto & Record_table<ENTRY>::write_entry(bool complete)
 }
 
 template <typename ENTRY>
-void Record_table<ENTRY>::done()
+void Record_table<ENTRY>::done() noexcept
 {
     if (active())
     {
@@ -99,7 +120,7 @@ void Record_table<ENTRY>::done()
 }
 
 template <typename ENTRY>
-ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const
+ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
 {
     auto n = ++entry;
     if (n == m_end)
@@ -111,7 +132,7 @@ ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const
 }
 
 template <typename ENTRY>
-void Record_table<ENTRY>::advance()
+void Record_table<ENTRY>::advance() noexcept
 {
     m_write = next(m_write);
     if (m_num_advances < m_config.m_size)
@@ -149,7 +170,7 @@ void Record_table<ENTRY>::free_entries()
 
 // This clears what has been written, but does not free entry memory.
 template <typename ENTRY>
-bool Record_table<ENTRY>::clear()
+bool Record_table<ENTRY>::clear() noexcept
 {
     if (m_config.m_enabled)
     {
@@ -163,7 +184,7 @@ bool Record_table<ENTRY>::clear()
 }
 
 template <typename ENTRY>
-bool Record_table<ENTRY>::enable(bool ena)
+bool Record_table<ENTRY>::enable(bool ena) noexcept
 {
     if (ena)
     {
@@ -184,7 +205,7 @@ bool Record_table<ENTRY>::enable(bool ena)
 }
 
 template <typename ENTRY>
-bool Record_table<ENTRY>::size(unsigned size)
+bool Record_table<ENTRY>::size(unsigned size) noexcept
 {
     if (enabled())
     {

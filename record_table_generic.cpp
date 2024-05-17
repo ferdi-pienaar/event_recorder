@@ -11,7 +11,7 @@ Record_table_generic::Record_table_generic(const Record_table_config & config,
 {
 }
 
-bool Record_table_generic::enabled() const
+bool Record_table_generic::enabled() const noexcept
 {
     return m_config.m_enabled;
 }
@@ -20,7 +20,8 @@ bool Record_table_generic::enabled() const
 // data will only be gathered until the array is full. If it is already full, no new
 // data will be gathered. If client wants to gather new data, it must call clear, before
 // or after switching to one-shot mode.
-bool Record_table_generic::oneshot(bool mode)
+// There are no such issues when changing from one-shot to rollover mode.
+bool Record_table_generic::oneshot(bool mode) noexcept
 {
     if (m_config.m_enabled)
     {
@@ -31,7 +32,7 @@ bool Record_table_generic::oneshot(bool mode)
     return true;
 }
 
-bool Record_table_generic::active() const
+bool Record_table_generic::active() const noexcept
 {
     return m_config.m_enabled && !m_stopped;
 }

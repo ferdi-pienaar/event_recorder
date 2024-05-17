@@ -8,13 +8,13 @@
 // Static instance that contains the default values.
 Record_table_config Record_table_config::CONFIG_DEFAULT;
 
-Record_table_config & Record_table_config::size(unsigned s)
+Record_table_config & Record_table_config::size(unsigned s) noexcept
 {
     m_size = s;
     return *this;
 }
 
-Record_table_config & Record_table_config::enable()
+Record_table_config & Record_table_config::enable() noexcept
 {
     if (m_size > 0)
     {
@@ -27,7 +27,7 @@ Record_table_config & Record_table_config::enable()
     return *this;
 }
 
-Record_table_config & Record_table_config::oneshot()
+Record_table_config & Record_table_config::oneshot() noexcept
 {
     m_oneshot = true;
     return *this;

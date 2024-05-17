@@ -15,17 +15,17 @@ public:
     Record_table_generic(const Record_table_config &, DUMP_STATE_CALLBACK dump_state);
 
     // Operator interface.
-    bool enabled() const;
-    bool oneshot(bool);
-    bool active() const;
+    bool enabled() const noexcept;
+    bool oneshot(bool) noexcept;
+    bool active() const noexcept;
     virtual bool enable(bool) = 0;
     virtual bool size(unsigned) = 0;
     virtual bool clear() = 0;
     virtual void dump() const = 0;
     void dump_state() const;
-    const Record_table_config & get_config() const { return m_config; }
-    bool is_stopped() const { return m_stopped; }
-    unsigned get_num_writes() const { return m_num_advances; }
+    const Record_table_config & get_config() const noexcept { return m_config; }
+    bool is_stopped() const noexcept { return m_stopped; }
+    unsigned get_num_writes() const noexcept { return m_num_advances; }
 
 protected:
     Record_table_config m_config;

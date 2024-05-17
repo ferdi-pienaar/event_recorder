@@ -10,9 +10,9 @@
 class Record_table_config
 {
 public:
-    Record_table_config & size(unsigned s);
-    Record_table_config & enable();
-    Record_table_config & oneshot();
+    Record_table_config & size(unsigned s) noexcept;
+    Record_table_config & enable() noexcept;
+    Record_table_config & oneshot() noexcept;
 
     unsigned m_size = 0;
     bool m_enabled = false;

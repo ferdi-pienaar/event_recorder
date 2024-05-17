@@ -1,5 +1,6 @@
 /*
- *
+ * Iterator is used by Record_table::dump to iterate through
+ * the written ENTRYs of a table.
  *
  */
 
@@ -12,10 +13,10 @@ class Record_table_iterator
 {
 public:
     Record_table_iterator(const Record_table<ENTRY> & table);
-    void begin();
-    void next();
-    const ENTRY & get_current();
-    bool end() const;
+    void begin() noexcept;
+    void next() noexcept;
+    const ENTRY & get_current() noexcept;
+    bool end() const noexcept;
 
 private:
     const Record_table<ENTRY> & m_table;
@@ -30,7 +31,7 @@ Record_table_iterator<ENTRY>::Record_table_iterator(const Record_table<ENTRY> & 
 }
 
 template <typename ENTRY>
-void Record_table_iterator<ENTRY>::begin()
+void Record_table_iterator<ENTRY>::begin() noexcept
 {
     if (m_table.m_num_advances == m_table.m_config.m_size)
     {
@@ -50,20 +51,20 @@ void Record_table_iterator<ENTRY>::begin()
 }
 
 template <typename ENTRY>
-void Record_table_iterator<ENTRY>::next()
+void Record_table_iterator<ENTRY>::next() noexcept
 {
     m_current = m_table.next(m_current);
     m_moved = true;
 }
 
 template <typename ENTRY>
-const ENTRY & Record_table_iterator<ENTRY>::get_current()
+const ENTRY & Record_table_iterator<ENTRY>::get_current() noexcept
 {
     return *m_current;
 }
 
 template <typename ENTRY>
-bool Record_table_iterator<ENTRY>::end() const
+bool Record_table_iterator<ENTRY>::end() const noexcept
 {
     if (m_table.m_num_advances == 0)
     {
