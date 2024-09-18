@@ -135,11 +135,11 @@ template <typename ENTRY>
 void Record_table<ENTRY>::advance() noexcept
 {
     m_write = next(m_write);
-    if (m_num_advances < m_config.m_size)
+    if (m_num_written_entries < m_config.m_size)
     {
-        ++m_num_advances;
+        ++m_num_written_entries;
     }
-    if (m_config.m_oneshot && (m_num_advances == m_config.m_size))
+    if (m_config.m_oneshot && (m_num_written_entries == m_config.m_size))
     {
         m_stopped = true;
     }
@@ -177,7 +177,7 @@ bool Record_table<ENTRY>::clear() noexcept
         return false;
     }
 
-    m_num_advances = 0;
+    m_num_written_entries = 0;
     m_write = m_entries;
     m_stopped = false;
     return true;

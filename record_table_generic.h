@@ -25,11 +25,11 @@ public:
     void dump_state() const;
     const Record_table_config & get_config() const noexcept { return m_config; }
     bool is_stopped() const noexcept { return m_stopped; }
-    unsigned get_num_writes() const noexcept { return m_num_advances; }
+    unsigned get_num_written_entries() const noexcept { return m_num_written_entries; }
 
 protected:
     Record_table_config m_config;
     const DUMP_STATE_CALLBACK m_dump_state = nullptr;
-    unsigned m_num_advances = 0; // Number of write advances, capped at config.size.
+    unsigned m_num_written_entries = 0; // Number of written entries, capped at config.size.
     bool m_stopped = false; // One-shot full => true, clear => false. xxx could also be in Record_table.
 };

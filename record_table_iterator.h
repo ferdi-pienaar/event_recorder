@@ -33,7 +33,7 @@ Record_table_iterator<ENTRY>::Record_table_iterator(const Record_table<ENTRY> & 
 template <typename ENTRY>
 void Record_table_iterator<ENTRY>::begin() noexcept
 {
-    if (m_table.m_num_advances == m_table.m_config.m_size)
+    if (m_table.m_num_written_entries == m_table.m_config.m_size)
     {
         // All entries filled, so start with next to be written,
         // and end when we've returned there.
@@ -66,7 +66,7 @@ const ENTRY & Record_table_iterator<ENTRY>::get_current() noexcept
 template <typename ENTRY>
 bool Record_table_iterator<ENTRY>::end() const noexcept
 {
-    if (m_table.m_num_advances == 0)
+    if (m_table.m_num_written_entries == 0)
     {
         // No entries written.
         return true;

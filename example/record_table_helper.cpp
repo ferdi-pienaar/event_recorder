@@ -26,7 +26,7 @@ void dump_table_state_cb(const Record_table_generic & t)
     std::cout << "enabled " << t.get_config().m_enabled << std::endl;
     std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;
     std::cout << "size " << t.get_config().m_size << std::endl;
-    std::cout << "writes " << t.get_num_writes() << std::endl;
+    std::cout << "written entries " << t.get_num_written_entries() << std::endl;
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }
 
