@@ -121,7 +121,7 @@ void Record_table_manager<ENTRY>::oneshot_tables(std::string substring, bool one
 template <typename ENTRY>
 void Record_table_manager<ENTRY>::size_tables(std::string substring, unsigned size) const
 {
-    do_tables(substring, [&](Record_table<ENTRY> & t) { t.size(size); });
+    do_tables(substring, [&](Record_table<ENTRY> & t) { t.set_size(size); });
 }
 
 // xxx can fail if a table a table is enabled.

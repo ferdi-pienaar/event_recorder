@@ -35,18 +35,16 @@ void Record_table_iterator<ENTRY>::begin() noexcept
 {
     if (m_table.m_num_written_entries == m_table.m_config.m_size)
     {
-        // All entries filled, so start with next to be written,
-        // and end when we've returned there.
+        // All entries filled, so start with next to be written.
         m_current = m_table.m_write;
-        m_end = m_current;
     }
     else
     {
-        // All entries not filled, so start with the first entry in the array,
-        // and end at the next to be written.
+        // All entries not filled, so start with the first entry in the array.
         m_current = m_table.m_entries;
-        m_end = m_table.m_write;
     }
+    // Finish when we get the next entry to be written.
+    m_end = m_table.m_write;
     m_moved = false;
 }
 

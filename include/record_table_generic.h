@@ -19,7 +19,7 @@ public:
     bool oneshot(bool) noexcept;
     bool active() const noexcept;
     virtual bool enable(bool) = 0;
-    virtual bool size(unsigned) = 0;
+    virtual bool set_size(unsigned) = 0;
     virtual bool clear() = 0;
     virtual void dump() const = 0;
     void dump_state() const;

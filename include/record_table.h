@@ -3,19 +3,19 @@
  * It has two interfaces (not currently implemented as separate interfaces
  * in code):
  * The 'record' interface allows instrumented code to:
- *  - write_entry returns a writable ENTRY in RAM. This could be e.g.
+ *  - get_write_entry returns a writable ENTRY in RAM. This could be e.g.
  *    a timestamp generated at run-time.
- *  - Indicate if the entry is complete and the next call to write_entry returns
+ *  - Indicate if the entry is complete and the next call to get_write_entry returns
  *    a new entry. True by default. If instrumented code chooses 'false', the
- *    same entry is returned by the next call to write_entry, e.g. to overwrite
+ *    same entry is returned by the next call to get_write_entry, e.g. to overwrite
  *    or modify an entry.
  *
  * The 'operator' interface allows an operator to work with the records of ENTRYs.
  * - Enable: when enabled, instrumented code saves ENTRYs, else none are saved.
- * - Size (set size): change max number of ENTRYs that instrumented code can save.
+ * - set_size: change max number of ENTRYs that instrumented code can save.
  * - Clear: deleted saved ENTRYs.
  * - Dump: call a registered dump function to examine saved ENTRYs.
- * - Dump state: call a callback funtion to dump state such as enabled/disabled,
+ * - Dump state: call a callback function to dump state such as enabled/disabled,
  *   onshot/overwrite mode, size (max), number of saved entries, size, is-stopped
  *   (e.g. if oneshot and full).
  * - Change oneshot/overwrite mode: oneshot means write until table is full
@@ -44,19 +44,19 @@ public:
                  DUMP_CALLBACK cb = nullptr,
                  Record_table_generic::DUMP_STATE_CALLBACK dump_state_cb = nullptr);
     ~Record_table();
-    // 'Record' interface consists of write_entry and optional done.
+    // 'Record' interface consists of get_write_entry() and optional done().
     // Returns a reference to an entry to write to.
     // Client uses default complete=true if it wants to move on the next entry, or false
     // if it wants to access the current entry again.
-    auto & write_entry(bool complete = true) noexcept;
-    // Client may call done after write_entry, to move on to next entry.
-    // Calling write_entry(false) followed by done() is equivalent to calling write_entry
+    auto & get_write_entry(bool complete = true) noexcept;
+    // Client may call done after get_write_entry, to move on to next entry.
+    // Calling get_write_entry(false) followed by done() is equivalent to calling get_write_entry
     // without params.
     void done() noexcept;
 
     // Operator interface.
     bool enable(bool) noexcept override;
-    bool size(unsigned) noexcept override;
+    bool set_size(unsigned) noexcept override;
     bool clear() noexcept override;
     // Call the registered dump callback for each written entry.
     void dump() const override;
@@ -96,7 +96,7 @@ Record_table<ENTRY>::~Record_table()
 }
 
 template <typename ENTRY>
-auto & Record_table<ENTRY>::write_entry(bool complete) noexcept
+auto & Record_table<ENTRY>::get_write_entry(bool complete) noexcept
 {
     if (!active())
     {
@@ -122,13 +122,13 @@ void Record_table<ENTRY>::done() noexcept
 template <typename ENTRY>
 ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
 {
-    auto n = ++entry;
-    if (n == m_end)
+    auto nxt = ++entry;
+    if (nxt == m_end)
     {
         // Rollover
         return m_entries;
     }
-    return n;
+    return nxt;
 }
 
 template <typename ENTRY>
@@ -205,7 +205,7 @@ bool Record_table<ENTRY>::enable(bool ena) noexcept
 }
 
 template <typename ENTRY>
-bool Record_table<ENTRY>::size(unsigned size) noexcept
+bool Record_table<ENTRY>::set_size(unsigned size) noexcept
 {
     if (enabled())
     {

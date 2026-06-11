@@ -63,7 +63,7 @@ TEST_F(Record_table_test, table_resize_and_enable)
 {
     Record_table<int> rtable;
 
-    EXPECT_TRUE(rtable.size(6));
+    EXPECT_TRUE(rtable.set_size(6));
     EXPECT_TRUE(rtable.enable(true));
     EXPECT_TRUE(rtable.enabled());
 }
@@ -72,7 +72,7 @@ TEST_F(Record_table_test, iterator_first)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable());
 
-    rtable.write_entry() = 13;
+    rtable.get_write_entry() = 13;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -87,7 +87,7 @@ TEST_F(Record_table_test, iterator_first)
 TEST_F(Record_table_test, table_size_0_write)
 {
     Record_table<int> rtable;
-    rtable.write_entry() = 13;
+    rtable.get_write_entry() = 13;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -97,7 +97,7 @@ TEST_F(Record_table_test, table_size_0_write)
 TEST_F(Record_table_test, table_disabled_write)
 {
     Record_table<int> rtable(Record_table_config().size(12));
-    rtable.write_entry() = 13;
+    rtable.get_write_entry() = 13;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -116,7 +116,7 @@ TEST_F(Record_table_test, iterator_no_writes)
 TEST_F(Record_table_test, clear)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable());
-    rtable.write_entry() = 13;
+    rtable.get_write_entry() = 13;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -132,8 +132,8 @@ TEST_F(Record_table_test, clear)
 TEST_F(Record_table_test, iterator_next)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable());
-    rtable.write_entry() = 13;
-    rtable.write_entry() = 14;
+    rtable.get_write_entry() = 13;
+    rtable.get_write_entry() = 14;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -153,14 +153,14 @@ TEST_F(Record_table_test, iterator_next)
 TEST_F(Record_table_test, table_overwrite)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable());
-    auto & e1 = rtable.write_entry(); // advance
+    auto & e1 = rtable.get_write_entry(); // advance
     e1 = 13;
     e1 = 14; // overwrite
-    rtable.write_entry(false) = 15; // no advance, so next line overwrites.
-    rtable.write_entry() = 16; // overwrite
-    rtable.write_entry(false) = 17;
+    rtable.get_write_entry(false) = 15; // no advance, so next line overwrites.
+    rtable.get_write_entry() = 16; // overwrite
+    rtable.get_write_entry(false) = 17;
     rtable.done(); // advance, so next line does not overwrite.
-    rtable.write_entry() = 18;
+    rtable.get_write_entry() = 18;
 
     Record_table_iterator<int> table_iter(rtable);
     table_iter.begin();
@@ -184,9 +184,9 @@ TEST_F(Record_table_test, rollover)
 {
     Record_table<int> rtable(Record_table_config().size(2).enable());
 
-    rtable.write_entry() = 13;
-    rtable.write_entry() = 14;
-    rtable.write_entry() = 15;
+    rtable.get_write_entry() = 13;
+    rtable.get_write_entry() = 14;
+    rtable.get_write_entry() = 15;
 
     Record_table_iterator<int> table_iter(rtable);
 
@@ -207,9 +207,9 @@ TEST_F(Record_table_test, oneshot)
 {
     Record_table<int> rtable(Record_table_config().oneshot().size(2).enable());
 
-    rtable.write_entry() = 13;
-    rtable.write_entry() = 14;
-    rtable.write_entry() = 15;
+    rtable.get_write_entry() = 13;
+    rtable.get_write_entry() = 14;
+    rtable.get_write_entry() = 15;
     EXPECT_FALSE(rtable.active());
 
     Record_table_iterator<int> table_iter(rtable);
@@ -247,7 +247,7 @@ TEST_F(Record_table_test, timespec_record_array)
 
     for (unsigned i = 0; i < NUM_ENTRIES * 2; ++i)
     {
-        auto & w_entry = rtable.write_entry();
+        auto & w_entry = rtable.get_write_entry();
         for (unsigned j = 0; j < NUM_STAMPS_PER_ENTRY; ++j)
         {
             clock_gettime(CLOCK_REALTIME, &w_entry[j]);
@@ -266,7 +266,7 @@ TEST_F(Record_table_test, mgr)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable(), dump_int_cb);
 
-    rtable.write_entry() = 11001;
+    rtable.get_write_entry() = 11001;
 
     Record_table_manager<int> mgr({{"int-table", rtable}});
     mgr.dump_tables("int-t");
@@ -278,9 +278,9 @@ TEST_F(Record_table_test, mgr_match2)
     Record_table<int> rtable2(Record_table_config().size(12).enable(), dump_int_cb);
     Record_table<int> rtable3(Record_table_config().size(12).enable(), dump_int_cb);
 
-    rtable.write_entry() = 11001;
-    rtable2.write_entry() = 2202;
-    rtable3.write_entry() = 333;
+    rtable.get_write_entry() = 11001;
+    rtable2.get_write_entry() = 2202;
+    rtable3.get_write_entry() = 333;
 
     Record_table_manager<int> mgr({{"int-table1", rtable}, {"x", rtable2}, {"int-table3", rtable3}});
     mgr.dump_tables("int-t");
