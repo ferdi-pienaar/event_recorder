@@ -17,12 +17,13 @@
 GTEST_DIR = ../../gtest/googletest-master/googletest
 
 # Where to find user code.
-USER_DIR = ..
+SRC_DIR = ../src
+INC_DIR = ../include
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)/include -I $(USER_DIR)
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I $(INC_DIR)
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread
@@ -40,12 +41,12 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 # House-keeping build targets.
 
-OBJS = $(USER_DIR)/record_table_generic.o $(USER_DIR)/record_table_config.o
+OBJS = $(SRC_DIR)/record_table_generic.o $(SRC_DIR)/record_table_config.o
 
 all : $(TESTS)
 
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o *.d $(USER_DIR)/*.o $(USER_DIR)/*.d
+	rm -f $(TESTS) gtest.a gtest_main.a *.o *.d $(SRC_DIR)/*.o $(SRC_DIR)/*.d
 
 # Execute test, only if executable is new -- the empty tag file timestamps the last time the test ran
 testTag: record_table_test
