@@ -7,7 +7,7 @@
  *
  * The implementer of the operator code should therefore assign names to
  * the tables such that sub-strings can be used to identify groups of tables
- * by name, e.g. names of the tables pertaining to upstream should contain "upstream",
+ * by name, e.g. names of tables pertaining to upstream should contain "upstream",
  * and names of tables pertaining to protocol DHCP should contain "dhcp",
  * and names of tables pertaining to invalid packets should contain "invalid", etc.
  * This would result in names like "invalid-upstream-dhcp", "valid-downstream-dns", etc.
@@ -138,7 +138,7 @@ void Record_table_manager<ENTRY>::dump_tables_state(std::string substring) const
 }
 
 // xxx could we return an error string for a failed operation?
-// Call table_fn for all tables that match substring.
+// Call table_fn for all tables in this manager that match substring.
 template <typename ENTRY>
 void Record_table_manager<ENTRY>::do_tables(std::string substring, std::function<void(Record_table<ENTRY> &)> table_fn) const
 {

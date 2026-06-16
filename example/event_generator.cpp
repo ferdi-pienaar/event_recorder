@@ -4,7 +4,7 @@
 
 //#include "record_table_defs.h"
 #include "record_table_types.h"
-#include "record_table_recorder.h"
+#include "event_generator.h"
 #include "record_table_manager.h"
 #include "record_table_operator.h"
 

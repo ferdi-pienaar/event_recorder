@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(record_table
+project(event_recorder
     VERSION 1.0
     LANGUAGES CXX)
 
@@ -7,13 +7,13 @@ project(record_table
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(record_table
+add_library(event_recorder
     src/record_table_config.cpp
     src/record_table_generic.cpp
 )
 
 # Include directories for the library
-target_include_directories(record_table
+target_include_directories(event_recorder
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

@@ -120,70 +120,6 @@ void Record_table<ENTRY>::done() noexcept
 }
 
 template <typename ENTRY>
-ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
-{
-    auto nxt = ++entry;
-    if (nxt == m_end)
-    {
-        // Rollover
-        return m_entries;
-    }
-    return nxt;
-}
-
-template <typename ENTRY>
-void Record_table<ENTRY>::advance() noexcept
-{
-    m_write = next(m_write);
-    if (m_num_written_entries < m_config.m_size)
-    {
-        ++m_num_written_entries;
-    }
-    if (m_config.m_oneshot && (m_num_written_entries == m_config.m_size))
-    {
-        m_stopped = true;
-    }
-}
-
-// @pre no memory allocated currently.
-template <typename ENTRY>
-void Record_table<ENTRY>::allocate_entries()
-{
-    assert(m_entries == nullptr);
-
-    m_entries = new ENTRY[m_config.m_size];
-    m_end = m_entries + m_config.m_size;
-
-    m_write = m_entries;
-}
-
-template <typename ENTRY>
-void Record_table<ENTRY>::free_entries()
-{
-    if (m_entries != nullptr)
-    {
-        delete[] m_entries;
-        m_entries = nullptr;
-        clear();
-    }
-}
-
-// This clears what has been written, but does not free entry memory.
-template <typename ENTRY>
-bool Record_table<ENTRY>::clear() noexcept
-{
-    if (m_config.m_enabled)
-    {
-        return false;
-    }
-
-    m_num_written_entries = 0;
-    m_write = m_entries;
-    m_stopped = false;
-    return true;
-}
-
-template <typename ENTRY>
 bool Record_table<ENTRY>::enable(bool ena) noexcept
 {
     if (ena)
@@ -221,6 +157,21 @@ bool Record_table<ENTRY>::set_size(unsigned size) noexcept
     return true;
 }
 
+// This clears what has been written, but does not free entry memory.
+template <typename ENTRY>
+bool Record_table<ENTRY>::clear() noexcept
+{
+    if (m_config.m_enabled)
+    {
+        return false;
+    }
+
+    m_num_written_entries = 0;
+    m_write = m_entries;
+    m_stopped = false;
+    return true;
+}
+
 // xxx only if not enabled?
 template <typename ENTRY>
 void Record_table<ENTRY>::dump() const
@@ -234,4 +185,53 @@ void Record_table<ENTRY>::dump() const
     {
         m_dump_cb(iter.get_current());
     }
+}
+
+// @pre no memory allocated currently.
+template <typename ENTRY>
+void Record_table<ENTRY>::allocate_entries()
+{
+    assert(m_entries == nullptr);
+
+    m_entries = new ENTRY[m_config.m_size];
+    m_end = m_entries + m_config.m_size;
+
+    m_write = m_entries;
+}
+
+template <typename ENTRY>
+void Record_table<ENTRY>::free_entries()
+{
+    if (m_entries != nullptr)
+    {
+        delete[] m_entries;
+        m_entries = nullptr;
+        clear();
+    }
+}
+
+template <typename ENTRY>
+void Record_table<ENTRY>::advance() noexcept
+{
+    m_write = next(m_write);
+    if (m_num_written_entries < m_config.m_size)
+    {
+        ++m_num_written_entries;
+    }
+    if (m_config.m_oneshot && (m_num_written_entries == m_config.m_size))
+    {
+        m_stopped = true;
+    }
+}
+
+template <typename ENTRY>
+ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
+{
+    auto nxt = ++entry;
+    if (nxt == m_end)
+    {
+        // Rollover
+        return m_entries;
+    }
+    return nxt;
 }

@@ -1,11 +1,11 @@
 
-add_executable(record_table_example
+add_executable(event_recorder_example
     record_table_operator.cpp
     record_table_helper.cpp
-    record_table_recorder.cpp
+    event_generator.cpp
 )
 
-target_link_libraries(record_table_example
+target_link_libraries(event_recorder_example
     PRIVATE
-        record_table
+        event_recorder
 )

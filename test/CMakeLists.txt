@@ -2,13 +2,13 @@
 
 find_package(GTest REQUIRED)
 
-add_executable(record_table_test
-    record_table_test.cpp
+add_executable(event_recorder_test
+    event_recorder_test.cpp
 )
 
-target_link_libraries(record_table_test
+target_link_libraries(event_recorder_test
     PRIVATE
-        record_table
+        event_recorder
         GTest::gtest
         GTest::gtest_main
 )
@@ -16,6 +16,6 @@ target_link_libraries(record_table_test
 # Enable testing (if you want to use CTest)
 #enable_testing()
 #add_test(
-#    NAME record_table_test
-#   COMMAND record_table_test
+#   NAME event_recorder_test
+#   COMMAND event_recorder_test
 #)
