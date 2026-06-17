@@ -5,9 +5,6 @@
 
 #pragma once
 #include <string>
-#include <map>
-#include <functional>
-#include "record_table.h"
 
 class Record_table_manager_interface
 {

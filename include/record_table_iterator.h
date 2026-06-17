@@ -5,7 +5,13 @@
  */
 
 #pragma once
+
+#if 0
+// If the declaration below doesn't work, I may need to restore this.
 #include "record_table.h"
+#else
+template <typename ENTRY> class Record_table;
+#endif
 
 // Iterate over written entries in Record_table, from oldest to newest.
 template <typename ENTRY>

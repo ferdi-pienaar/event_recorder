@@ -1,7 +1,7 @@
 /*
- *
+ * Helper functions used by the operator that manages and dumps the record tables.
  */
-#include "record_table_types.h"
+#include "example_event_data_types.h"
 #include "record_table_generic.h"
 #include <string>
 

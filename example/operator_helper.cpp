@@ -1,8 +1,8 @@
 /*
- *
+ * Helper functions used by the operator that manages and dumps the record tables.
  */
 
-#include "record_table_helper.h"
+#include "operator_helper.h"
 #include <iostream>
 #include <string>
 

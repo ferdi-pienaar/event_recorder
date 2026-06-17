@@ -1,7 +1,7 @@
 
 add_executable(event_recorder_example
-    record_table_operator.cpp
-    record_table_helper.cpp
+    operator.cpp
+    operator_helper.cpp
     event_generator.cpp
 )
 

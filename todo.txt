@@ -1,7 +1,11 @@
 Put print function(s) in separate modules. We could remove the callbacks from the core class.
 The function could in fact examine the ENTRYs in any way, does not have to be printing.
 
-Separate interfaces for 'record' and 'operator' parts. This may reduce dependencies.
+Separate interfaces for 'record' and 'operator' parts. This may reduce dependencies --
+the client's operator part depends on one interface, and the client's event recorder
+part depends on another interface, and neither depends on record_table.h, which contains
+a lot of the implementation and so may change frequently, meaning the client has to be
+rebuilt frequently.
 
 Should we inherit from Record_table_generic? Is inheritance the right mechanism? Does
 record_table_generic add much, apart from allowing us to put some code in a separate .cpp
@@ -19,3 +23,6 @@ prohibit this, or at least say that done() can only be called from a single thre
 Another option is to make one-shot only selectable at compile-time: this would make
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.
 Could I have 3 Record_table classes: oneshot, rollover, and selectable-at-runtime?
+
+In example build, let the event generator run in a separate thread, because having record_table_operator
+call it makes the separation unclear.

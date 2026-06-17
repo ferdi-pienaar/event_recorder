@@ -20,7 +20,12 @@
 #include <string>
 #include <map>
 #include <functional>
+#if 0
+// If the declaration below doesn't work, I may need to restore this.
 #include "record_table.h"
+#else
+template <typename ENTRY> class Record_table;
+#endif
 #include "record_table_manager_itf.h"
 
 template <typename ENTRY>

@@ -2,11 +2,11 @@
  *
  */
 
-//#include "record_table_defs.h"
-#include "record_table_types.h"
+#include "record_table.h"
+#include "example_event_data_types.h"
 #include "event_generator.h"
 #include "record_table_manager.h"
-#include "record_table_operator.h"
+#include "operator.h"
 
 static auto ttable = get_timestamp_manager().get_table("time1");
 static auto itable = get_int_manager().get_table("int1");

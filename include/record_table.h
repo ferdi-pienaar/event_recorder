@@ -27,8 +27,6 @@
 #pragma once
 #include "record_table_generic.h"
 #include <string>
-#include <vector>
-#include <map>
 #include <assert.h>
 
 template <typename ENTRY>

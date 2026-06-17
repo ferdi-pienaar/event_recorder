@@ -7,9 +7,9 @@
 #include "record_table.h"
 #include "record_table_iterator.h"
 #include "record_table_manager.h"
-#include "record_table_types.h"
+#include "example_event_data_types.h"
 #include "event_generator.h"
-#include "record_table_helper.h"
+#include "operator_helper.h"
 
 static void handle_command();
 static void parse(const std::string & domain, char cmd, const std::string & name, unsigned param);
