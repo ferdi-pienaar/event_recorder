@@ -1,5 +1,4 @@
 
-
 find_package(GTest REQUIRED)
 
 add_executable(event_recorder_test

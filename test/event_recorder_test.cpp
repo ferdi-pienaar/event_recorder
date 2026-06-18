@@ -268,7 +268,7 @@ TEST_F(Record_table_test, mgr)
 
     rtable.get_write_entry() = 11001;
 
-    Record_table_manager<int> mgr({{"int-table", rtable}});
+    Record_table_manager mgr({{"int-table", rtable}});
     mgr.dump_tables("int-t");
 }
 
@@ -282,11 +282,11 @@ TEST_F(Record_table_test, mgr_match2)
     rtable2.get_write_entry() = 2202;
     rtable3.get_write_entry() = 333;
 
-    Record_table_manager<int> mgr({{"int-table1", rtable}, {"x", rtable2}, {"int-table3", rtable3}});
+    Record_table_manager mgr({{"int-table1", rtable}, {"x", rtable2}, {"int-table3", rtable3}});
     mgr.dump_tables("int-t");
 }
 
-static void dump_table_state_cb(const Record_table_generic & t)
+static void dump_table_state_cb(const Record_table_op_itf & t)
 {
     std::cout << "enabled " << t.get_config().m_enabled << std::endl;
     std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;
@@ -298,6 +298,6 @@ TEST_F(Record_table_test, mgr_state)
 {
     Record_table<int> rtable(Record_table_config().size(12).enable(), nullptr, dump_table_state_cb);
 
-    Record_table_manager<int> mgr({{"int-table", rtable}});
+    Record_table_manager mgr({{"int-table", rtable}});
     mgr.dump_tables_state("int-t");
 }

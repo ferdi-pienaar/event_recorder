@@ -1,19 +1,6 @@
 Put print function(s) in separate modules. We could remove the callbacks from the core class.
 The function could in fact examine the ENTRYs in any way, does not have to be printing.
 
-Separate interfaces for 'record' and 'operator' parts. This may reduce dependencies --
-the client's operator part depends on one interface, and the client's event recorder
-part depends on another interface, and neither depends on record_table.h, which contains
-a lot of the implementation and so may change frequently, meaning the client has to be
-rebuilt frequently.
-
-Should we inherit from Record_table_generic? Is inheritance the right mechanism? Does
-record_table_generic add much, apart from allowing us to put some code in a separate .cpp
-file?
-
-Why does Record_table_generic have virtual methods? Do we call methods via this interface,
-or could we leave these methods out of Record_table_generic and just define them in Record_table?
-
 Write something coherent about threading -- can events safely be handled concurrently with
 operator commands? If operator commands do nothing if enabled, it should mean we only need
 to consider the interaction between enable/disable and the recorder API. What if the recorder
@@ -24,5 +11,8 @@ Another option is to make one-shot only selectable at compile-time: this would m
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.
 Could I have 3 Record_table classes: oneshot, rollover, and selectable-at-runtime?
 
-In example build, let the event generator run in a separate thread, because having record_table_operator
-call it makes the separation unclear.
+Manager commands should return errors, at least a bool.
+Use of noexcept where applicable.
+Re-order methods in record_table to create logical groups.
+
+In /example, consider using classes instead of just functions.

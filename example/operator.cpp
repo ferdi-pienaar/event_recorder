@@ -4,79 +4,77 @@
 
 #include <iostream>
 #include <string>
-#include "record_table.h"
-#include "record_table_iterator.h"
-#include "record_table_manager.h"
-#include "example_event_data_types.h"
-#include "event_generator.h"
-#include "operator_helper.h"
+#include <sstream>
+//#include "record_table_iterator.h"
+#include "record_table_manager_itf.h"
+
+// Pointer initialized by injection at initialization.
+// xxx maybe just pass it from fn to fn, no need to save it here?
+static const Record_table_manager_interface *table_mgr = nullptr;
 
 static void handle_command();
-static void parse(const std::string & domain, char cmd, const std::string & name, unsigned param);
 
-int main(int argc, char * argv[])
+// Note: this fn never returns.
+void operator_init(const Record_table_manager_interface & mgr)
 {
+    table_mgr = &mgr;
+
     while (true)
     {
         handle_command();
     }
-    return 0;
 }
 
+// Reading cin into a string and then parsing that may be clumsy, but it means I don't have to flush
+// cin after each command.
+// Example command: e t 0 (disable)
+//                  s t 100 (set size 100)
+//                  e t 1 (enable)
+//                  d t (dump)
+// xxx how do we make it that the 'name substring' can be nothing, to apply to all? Re-order? But param
+// is also optional, so it also needs to be last?
 void handle_command()
 {
-    std::cout << "handle_command" << std::endl;
+    std::cout << "handle_command: enter ['e'|'s'|'o'|'d'|'c'|'t'] [name substring] [int param for e, s, o]" << std::endl;
 
-    std::string domain;
+    static const Record_table_manager_interface *mgr = nullptr;
+    std::string input;
+    std::getline(std::cin, input);
+    std::istringstream line(input);
+
     char cmd;
-    std::string name;
+    std::string name_ss;
+    line >> cmd >> name_ss;
+    std::cout << "cmd '" << cmd << "' name sub-string '" << name_ss << "'" << std::endl;
+
     unsigned param;
-
-    std::cin >> domain >> cmd >> param >> name;
-
-    parse(domain, cmd, name, param);
-
-    // Flush input buffer? Apparently not.
-    std::cin.clear();
-}
-
-static Record_table<Double_stamp> ttable(Record_table_config().size(NUM_ENTRIES).enable(), dump_ts_array_cb, dump_table_state_cb);
-Record_table_manager<Double_stamp> & get_timestamp_manager()
-{
-    static Record_table_manager<Double_stamp> mgr({{"time1", ttable}}, dump_name_cb);
-    return mgr;
-}
-
-static Record_table<int> itable(Record_table_config().size(NUM_ENTRIES).enable(), dump_int_cb, dump_table_state_cb);
-Record_table_manager<int> & get_int_manager()
-{
-    static Record_table_manager<int> mgr({{"int1", itable}}, dump_name_cb);
-    return mgr;
-}
-
-static std::map<std::string, Record_table_manager_interface &> managers = {{"time", get_timestamp_manager()}, {"int", get_int_manager()}};
-
-void parse(const std::string & domain, char cmd, const std::string & name, unsigned param)
-{
-    std::cout << "domain: '" << domain << "' cmd " << cmd << " name '" << name << "' param " << param << std::endl;
-
-    if (domain == "time")
+    switch (cmd)
     {
-        get_timestamp_manager().handle_cmd(cmd, name, param);
-    }
-    else if (domain == "int")
-    {
-        get_int_manager().handle_cmd(cmd, name, param);
-    }
-    else if (domain == "event")
-    {
-        if (name == "time")
-        {
-            time_event();
-        }
-        else
-        {
-            int_event();
-        }
+    case 'e': // enable/disable
+        line >> param;
+        std::cout << (param ? "enable" : "disable") << std::endl;
+        table_mgr->enable_tables(name_ss, param);
+        return;
+    case 's': // size
+        line >> param;
+        std::cout << "size " << param << std::endl;
+        table_mgr->size_tables(name_ss, param);
+        return;
+    case 'o': // oneshot/rollover
+        line >> param;
+        std::cout << (param ? "oneshot" : "rollover") << std::endl;
+        table_mgr->oneshot_tables(name_ss, param);
+        return;
+    case 'd': // dump
+        table_mgr->dump_tables(name_ss);
+        return;
+    case 'c': // clear
+        table_mgr->clear_tables(name_ss);
+        return;
+    case 't': // tables state
+        table_mgr->dump_tables_state(name_ss);
+        return;
+    default:
+        std::cout << "unknown command: " << cmd << std::endl;
     }
 }

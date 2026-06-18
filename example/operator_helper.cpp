@@ -5,6 +5,7 @@
 #include "operator_helper.h"
 #include <iostream>
 #include <string>
+#include "record_table_op_itf.h"
 
 void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry)
 {
@@ -21,7 +22,7 @@ void dump_int_cb(const int & entry)
     std::cout << entry << std::endl;
 }
 
-void dump_table_state_cb(const Record_table_generic & t)
+void dump_table_state_cb(const Record_table_op_itf & t)
 {
     std::cout << "enabled " << t.get_config().m_enabled << std::endl;
     std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;

@@ -1,5 +1,6 @@
 
 add_executable(event_recorder_example
+    composition_root.cpp
     operator.cpp
     operator_helper.cpp
     event_generator.cpp

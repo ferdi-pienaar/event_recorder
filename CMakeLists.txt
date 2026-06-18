@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(event_recorder
     src/record_table_config.cpp
-    src/record_table_generic.cpp
+    src/record_table_manager.cpp
 )
 
 # Include directories for the library

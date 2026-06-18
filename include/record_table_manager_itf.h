@@ -1,11 +1,11 @@
 /*
  *
- *
  */
 
 #pragma once
 #include <string>
 
+// The interface of class Record_table_manager.
 class Record_table_manager_interface
 {
 public:
