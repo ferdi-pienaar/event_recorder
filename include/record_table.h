@@ -3,12 +3,11 @@
  * It has two interfaces (not currently implemented as separate interfaces
  * in code):
  * The 'record' interface allows instrumented code to:
- *  - get_write_entry returns a writable ENTRY in RAM. This could be e.g.
- *    a timestamp generated at run-time.
- *  - Indicate if the entry is complete and the next call to get_write_entry returns
- *    a new entry. True by default. If instrumented code chooses 'false', the
- *    same entry is returned by the next call to get_write_entry, e.g. to overwrite
- *    or modify an entry.
+ * - get_write_entry returns a writable ENTRY in RAM. This could be e.g.
+ *   a timestamp generated at run-time.
+ * - Indicate if the entry is complete and the next call to get_write_entry returns a new entry.
+ *   True by default. If instrumented code chooses 'false', the same entry is returned by the next
+ *   call to get_write_entry, e.g. to overwrite or modify an entry.
  *
  * The 'operator' interface allows an operator to work with the records of ENTRYs.
  * - Enable: when enabled, instrumented code saves ENTRYs, else none are saved.
@@ -18,12 +17,9 @@
  * - Dump state: call a callback function to dump state such as enabled/disabled,
  *   onshot/overwrite mode, size (max), number of saved entries, size, is-stopped
  *   (e.g. if oneshot and full).
- * - Change oneshot/overwrite mode: oneshot means write until table is full
- *   (don't overwrite old entries); overwrite means repeatedly overwrite old entries
- *   with new ones.
- *
+ * - Change oneshot/overwrite mode: oneshot means write until table is full (don't overwrite old
+ *   entries); overwrite means repeatedly overwrite old entries with new ones.
  */
-
 #pragma once
 #include "record_table_event_itf.h"
 #include "record_table_op_itf.h"
@@ -57,21 +53,19 @@ public:
     void done() noexcept override;
 
     // Operator interface.
-    bool enable(bool) noexcept;
-    bool set_size(unsigned) noexcept;
-    bool clear() noexcept;
+    bool set_size(unsigned) noexcept override;
+    bool enable(bool) noexcept override;
+    bool oneshot(bool) noexcept override;
+    bool clear() noexcept override;
     // Call the registered dump callback for each written entry.
-    void dump() const;
-
-    // xxx Can the following 3 be private???
-    bool enabled() const noexcept { return m_config.m_enabled; }
-    bool active() const noexcept{ return m_config.m_enabled && !m_stopped; }
-    bool oneshot(bool) noexcept;
-
-    void dump_state() const override { if (m_dump_state != nullptr) m_dump_state(*this); }
-    const Record_table_config & get_config() const override { return m_config; }
-    unsigned get_num_written_entries() const override { return m_num_written_entries; }
-    bool is_stopped() const override { return m_stopped; }
+    void dump() const override;
+    void dump_state() const override { if (m_dump_state_cb != nullptr) m_dump_state_cb(*this); }
+    unsigned size() const noexcept override { return m_config.get_size(); }
+    bool enabled() const noexcept override { return m_config.get_enabled(); }
+    bool oneshot() const noexcept override { return m_config.get_oneshot(); }
+    bool active() const noexcept override { return m_config.get_enabled() && !m_stopped; }
+    bool is_stopped() const noexcept override { return m_stopped; }
+    unsigned get_num_written_entries() const noexcept override { return m_num_written_entries; }
 
     friend class Record_table_iterator<ENTRY>;
 
@@ -81,25 +75,24 @@ private:
     void advance() noexcept;
     ENTRY * next(ENTRY * entry) const noexcept;
 
+    const DUMP_CALLBACK m_dump_cb = nullptr;
+    Record_table_config m_config;
+    const DUMP_STATE_CALLBACK m_dump_state_cb = nullptr;
     ENTRY * m_entries = nullptr;
     ENTRY * m_write = nullptr; // Entry to write to.
     ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
     ENTRY m_dummy_entry; // Entry returned to client if disabled: client may write to it without effect.
-    const DUMP_CALLBACK m_dump_cb = nullptr;
-
-    Record_table_config m_config;
-    const DUMP_STATE_CALLBACK m_dump_state = nullptr;
     unsigned m_num_written_entries = 0; // Number of written entries, capped at config.size.
-    bool m_stopped = false; // One-shot full => true, clear => false. xxx could also be in Record_table.
+    bool m_stopped = false; // One-shot full => true, clear => false.
 };
 
 template <typename ENTRY>
 Record_table<ENTRY>::Record_table(const Record_table_config & config,
                                   DUMP_CALLBACK cb,
                                   DUMP_STATE_CALLBACK dump_state_cb) :
-    m_config(config), m_dump_state(dump_state_cb), m_dump_cb(cb)
+    m_config(config), m_dump_state_cb(dump_state_cb), m_dump_cb(cb)
 {
-    if (m_config.m_enabled)
+    if (m_config.get_enabled())
     {
         allocate_entries();
     }
@@ -136,11 +129,29 @@ void Record_table<ENTRY>::done() noexcept
 }
 
 template <typename ENTRY>
+bool Record_table<ENTRY>::set_size(unsigned size) noexcept
+{
+    if (m_config.get_enabled())
+    {
+        // xxx WARNING -- don't allow modifying size while enabled.
+        return false;
+    }
+
+    // xxx or should the above check be done in config?
+    m_config.set_size(size);
+    // Free allocated memory -- we assume the new size value is different from
+    // the current value.
+    // Memory will be allocated if client enables.
+    free_entries();
+    return true;
+}
+
+template <typename ENTRY>
 bool Record_table<ENTRY>::enable(bool ena) noexcept
 {
     if (ena)
     {
-        if (m_config.m_size == 0)
+        if (m_config.get_size() == 0)
         {
             // Can't enable if size is 0.
             return false;
@@ -152,36 +163,21 @@ bool Record_table<ENTRY>::enable(bool ena) noexcept
             allocate_entries();
         }
     }
-    m_config.m_enabled = ena;
-    return true;
-}
 
-template <typename ENTRY>
-bool Record_table<ENTRY>::set_size(unsigned size) noexcept
-{
-    if (enabled())
-    {
-        // xxx WARNING.
-        return false;
-    }
-
-    m_config.m_size = size;
-    // Free allocated memory -- we assume the new size value is different from
-    // the current value.
-    // Memory will be allocated if client enables.
-    free_entries();
+    // xxx but this checks AGAIN on the size!
+    m_config.set_enabled(ena);
     return true;
 }
 
 template <typename ENTRY>
 bool Record_table<ENTRY>::oneshot(bool mode) noexcept
 {
-    if (m_config.m_enabled)
+    if (m_config.get_enabled())
     {
         return false;
     }
 
-    m_config.m_oneshot = mode;
+    m_config.set_oneshot(mode);
     return true;
 }
 
@@ -189,7 +185,7 @@ bool Record_table<ENTRY>::oneshot(bool mode) noexcept
 template <typename ENTRY>
 bool Record_table<ENTRY>::clear() noexcept
 {
-    if (m_config.m_enabled)
+    if (m_config.get_enabled())
     {
         return false;
     }
@@ -221,8 +217,8 @@ void Record_table<ENTRY>::allocate_entries()
 {
     assert(m_entries == nullptr);
 
-    m_entries = new ENTRY[m_config.m_size];
-    m_end = m_entries + m_config.m_size;
+    m_entries = new ENTRY[m_config.get_size()];
+    m_end = m_entries + m_config.get_size();
 
     m_write = m_entries;
 }
@@ -242,11 +238,11 @@ template <typename ENTRY>
 void Record_table<ENTRY>::advance() noexcept
 {
     m_write = next(m_write);
-    if (m_num_written_entries < m_config.m_size)
+    if (m_num_written_entries < m_config.get_size())
     {
         ++m_num_written_entries;
     }
-    if (m_config.m_oneshot && (m_num_written_entries == m_config.m_size))
+    if (m_config.get_oneshot() && (m_num_written_entries == m_config.get_size()))
     {
         m_stopped = true;
     }

@@ -1,21 +1,17 @@
 /*
  * Record_table_manager allows client operator code to manage groups of Record_table,
- * if all the Record_table have the same type of ENTRY.
- * Each managed Record_table has a name, and Record_table manager can apply
- * operator actions (enable, dump, re-size, clear, etc) to Record_tables whose
- * names match a string input by the operator.
+ * if all the Record_table have the same type of ENTRY. Each managed Record_table has a name, and
+ * Record_table manager can apply operator actions (enable, dump, re-size, clear, etc) to
+ * Record_tables whose names match a string input by the operator.
  *
- * The implementer of the operator code should therefore assign names to
- * the tables such that sub-strings can be used to identify groups of tables
- * by name, e.g. names of tables pertaining to upstream should contain "upstream",
- * and names of tables pertaining to protocol DHCP should contain "dhcp",
- * and names of tables pertaining to invalid packets should contain "invalid", etc.
- * This would result in names like "invalid-upstream-dhcp", "valid-downstream-dns", etc.
- * It would allow the operator to enable all tables related to DHCP with one command, or
- * re-size all tables related to downstream packets with one command.
- *
+ * The implementer of the operator code should therefore assign names to the tables such that
+ * sub-strings can be used to identify groups of tables by name, e.g. names of tables pertaining to
+ * upstream should contain "upstream", and names of tables pertaining to protocol DHCP should
+ * contain "dhcp", and names of tables pertaining to invalid packets should contain "invalid", etc.
+ * This would result in names like "invalid-upstream-dhcp", "valid-downstream-dns", etc. It would
+ * allow the operator to enable all tables related to DHCP with one command, or re-size all tables
+ * related to downstream packets with one command.
  */
-
 #pragma once
 #include <string>
 #include <map>

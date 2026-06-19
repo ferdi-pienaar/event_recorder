@@ -1,17 +1,9 @@
 /*
- * Iterator is used by Record_table::dump to iterate through
- * the written ENTRYs of a table.
- *
+ * Iterator is used by Record_table::dump to iterate through the written ENTRYs of a table.
  */
-
 #pragma once
 
-#if 0
-// If the declaration below doesn't work, I may need to restore this.
-#include "record_table.h"
-#else
 template <typename ENTRY> class Record_table;
-#endif
 
 // Iterate over written entries in Record_table, from oldest to newest.
 template <typename ENTRY>
@@ -39,7 +31,7 @@ Record_table_iterator<ENTRY>::Record_table_iterator(const Record_table<ENTRY> & 
 template <typename ENTRY>
 void Record_table_iterator<ENTRY>::begin() noexcept
 {
-    if (m_table.m_num_written_entries == m_table.m_config.m_size)
+    if (m_table.m_num_written_entries == m_table.m_config.get_size())
     {
         // All entries filled, so start with next to be written.
         m_current = m_table.m_write;

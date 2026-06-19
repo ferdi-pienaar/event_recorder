@@ -1,8 +1,6 @@
 /*
- *
+ * This depends only on the abstract interface record_table_event_itf.h.
  */
-
-
 #include "event_generator.h"
 #include "record_table_event_itf.h"
 #include <pthread.h>
@@ -10,11 +8,10 @@
 #include <unistd.h> // sleep
 
 // Pointers initialized by injection at initialization.
-// xxx maybe just pass them from fn to fn, no need to save them here?
 static Record_table_event_itf<Double_stamp> *ttable = nullptr;
 static Record_table_event_itf<int> *itable = nullptr;
 
-static void* worker(void* arg);
+static void *worker(void *arg);
 static void time_event();
 static void int_event(unsigned int);
 
@@ -41,7 +38,6 @@ int event_generator_init(Record_table_event_itf<Double_stamp> &tt, Record_table_
 
 void *worker(void *arg)
 {
-    int count = 0;
     while (true)
     {
         static unsigned int counter = 0;

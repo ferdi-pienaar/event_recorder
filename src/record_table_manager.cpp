@@ -1,14 +1,11 @@
 /*
  */
-
 #include "record_table_manager.h"
 #include "record_table_op_itf.h"
 
-// xxx nothing prevents client inserting the same Record_table more than once, with a different name.
-//template <typename ENTRY>
-Record_table_manager::Record_table_manager(const std::map<std::string, Record_table_op_itf &> & tables,
-        DUMP_NAME_CALLBACK dump_name) :
-    m_tables(tables), m_dump_name(dump_name)
+Record_table_manager::Record_table_manager(
+    const std::map<std::string, Record_table_op_itf &> &tables, DUMP_NAME_CALLBACK dump_name)
+    : m_tables(tables), m_dump_name(dump_name)
 {
 }
 
@@ -57,23 +54,21 @@ void Record_table_manager::do_tables(std::string substring, std::function<void(R
         return pos != std::string::npos;
     };
 
-    for (auto start = m_tables.begin(); ; )
+    for (auto iter = m_tables.begin(); ; ++iter)
     {
         // Search remaining items in map.
-        auto iter = std::find_if(start, m_tables.end(), matcher);
+        iter = std::find_if(iter, m_tables.end(), matcher);
         if (iter == m_tables.end())
         {
             break;
         }
 
-        // Output the name of the table so client knows which tables matched its input string.
+        // Found a matching table: output its name so client knows which tables matched its input.
         if (m_dump_name != nullptr)
         {
             m_dump_name(iter->first);
         }
         auto & table = iter->second;
         table_fn(table);
-        // Next search starts at next item.
-        start = ++iter;
     }
 }

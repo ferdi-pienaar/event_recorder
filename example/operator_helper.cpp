@@ -1,7 +1,7 @@
 /*
  * Helper functions used by the operator that manages and dumps the record tables.
+ * It depends only on the abstract interface record_table_op_itf.h.
  */
-
 #include "operator_helper.h"
 #include <iostream>
 #include <string>
@@ -24,9 +24,9 @@ void dump_int_cb(const int & entry)
 
 void dump_table_state_cb(const Record_table_op_itf & t)
 {
-    std::cout << "enabled " << t.get_config().m_enabled << std::endl;
-    std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;
-    std::cout << "size " << t.get_config().m_size << std::endl;
+    std::cout << "size " << t.size() << std::endl;
+    std::cout << "enabled " << t.enabled() << std::endl;
+    std::cout << "oneshot " << t.oneshot() << std::endl;
     std::cout << "written entries " << t.get_num_written_entries() << std::endl;
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }

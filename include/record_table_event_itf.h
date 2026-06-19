@@ -1,8 +1,7 @@
 /*
- * It allows a client xxx
- *
+ * The 'write' interface of Record_table. The client uses it to write data about an event in a Record_table.
+ * xxx SHould it include an is_active member fn?
  */
-
 #pragma once
 
 template <typename ENTRY>

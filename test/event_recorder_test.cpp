@@ -17,23 +17,23 @@ class Record_table_test : public testing::Test
 TEST_F(Record_table_test, default_config)
 {
     Record_table_config c;
-    EXPECT_EQ(0, c.m_size);
-    EXPECT_FALSE(c.m_enabled);
+    EXPECT_EQ(0, c.get_size());
+    EXPECT_FALSE(c.get_enabled());
 }
 
 // Can't enable unless size > 0.
 TEST_F(Record_table_test, config_enable_no_entries)
 {
     Record_table_config c = Record_table_config().enable();
-    EXPECT_EQ(0, c.m_size);
-    EXPECT_FALSE(c.m_enabled);
+    EXPECT_EQ(0, c.get_size());
+    EXPECT_FALSE(c.get_enabled());
 }
 
 TEST_F(Record_table_test, config_size_enable)
 {
     Record_table_config c = Record_table_config().size(14).enable();
-    EXPECT_EQ(14, c.m_size);
-    EXPECT_TRUE(c.m_enabled);
+    EXPECT_EQ(14, c.get_size());
+    EXPECT_TRUE(c.get_enabled());
 }
 
 TEST_F(Record_table_test, table_enabled)
@@ -288,9 +288,9 @@ TEST_F(Record_table_test, mgr_match2)
 
 static void dump_table_state_cb(const Record_table_op_itf & t)
 {
-    std::cout << "enabled " << t.get_config().m_enabled << std::endl;
-    std::cout << "oneshot " << t.get_config().m_oneshot << std::endl;
-    std::cout << "size " << t.get_config().m_size << std::endl;
+    std::cout << "enabled " << t.enabled() << std::endl;
+    std::cout << "oneshot " << t.oneshot() << std::endl;
+    std::cout << "size " << t.size() << std::endl;
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }
 

@@ -1,11 +1,9 @@
-Put print function(s) in separate modules. We could remove the callbacks from the core class.
-The function could in fact examine the ENTRYs in any way, does not have to be printing.
-
 Write something coherent about threading -- can events safely be handled concurrently with
 operator commands? If operator commands do nothing if enabled, it should mean we only need
 to consider the interaction between enable/disable and the recorder API. What if the recorder
 API for a given table is used from more than one thread? We should probably explicitly
 prohibit this, or at least say that done() can only be called from a single thread.
+Do we need to make something atomic to allow concurrent writes?
 
 Another option is to make one-shot only selectable at compile-time: this would make
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.
@@ -13,6 +11,11 @@ Could I have 3 Record_table classes: oneshot, rollover, and selectable-at-runtim
 
 Manager commands should return errors, at least a bool.
 Use of noexcept where applicable.
-Re-order methods in record_table to create logical groups.
 
-In /example, consider using classes instead of just functions.
+Don't duplicate checks on Record_table_config in Record_table_config & Record_table:
+Record_table_config only.
+
+In unit test, check that dump works correctly, by passing a callback
+that writes the output data somewhere the test can verify it.
+
+Measure unit test code coverage.
