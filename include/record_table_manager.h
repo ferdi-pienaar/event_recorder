@@ -27,15 +27,15 @@ public:
 
     Record_table_manager(const std::map<std::string, Record_table_op_itf &> &,
                          DUMP_NAME_CALLBACK dump_name = nullptr);
-    void dump_tables(std::string substring) const override;
-    void enable_tables(std::string substring, bool ena) const override;
-    void oneshot_tables(std::string substring, bool one) const override;
-    void size_tables(std::string substring, unsigned size) const override;
-    void clear_tables(std::string substring) const override;
-    void dump_tables_state(std::string substring) const override;
+    bool dump_tables(std::string substring) const override;
+    bool enable_tables(std::string substring, bool ena) const override;
+    bool oneshot_tables(std::string substring, bool one) const override;
+    bool size_tables(std::string substring, unsigned size) const override;
+    bool clear_tables(std::string substring) const override;
+    bool dump_tables_state(std::string substring) const override;
 
 private:
-    void do_tables(std::string substring, std::function<void(Record_table_op_itf &)>) const;
+    bool do_tables(std::string substring, std::function<bool(Record_table_op_itf &)>) const;
 
     std::map<std::string, Record_table_op_itf &> m_tables;
     const DUMP_NAME_CALLBACK m_dump_name = nullptr;

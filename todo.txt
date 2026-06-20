@@ -9,11 +9,10 @@ Another option is to make one-shot only selectable at compile-time: this would m
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.
 Could I have 3 Record_table classes: oneshot, rollover, and selectable-at-runtime?
 
-Manager commands should return errors, at least a bool.
+Manager commands could return more detailed error than 'command failed on 1 or more tables', or
+report using the existing dump_name_callback, whose name could be changed to indicate more general
+use.
 Use of noexcept where applicable.
-
-Don't duplicate checks on Record_table_config in Record_table_config & Record_table:
-Record_table_config only.
 
 In unit test, check that dump works correctly, by passing a callback
 that writes the output data somewhere the test can verify it.

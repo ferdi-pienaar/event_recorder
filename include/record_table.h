@@ -58,8 +58,8 @@ public:
     bool oneshot(bool) noexcept override;
     bool clear() noexcept override;
     // Call the registered dump callback for each written entry.
-    void dump() const override;
-    void dump_state() const override { if (m_dump_state_cb != nullptr) m_dump_state_cb(*this); }
+    bool dump() const override;
+    bool dump_state() const override;
     unsigned size() const noexcept override { return m_config.get_size(); }
     bool enabled() const noexcept override { return m_config.get_enabled(); }
     bool oneshot() const noexcept override { return m_config.get_oneshot(); }
@@ -137,10 +137,8 @@ bool Record_table<ENTRY>::set_size(unsigned size) noexcept
         return false;
     }
 
-    // xxx or should the above check be done in config?
     m_config.set_size(size);
-    // Free allocated memory -- we assume the new size value is different from
-    // the current value.
+    // Free allocated memory -- even if the new size is the same as the current size.
     // Memory will be allocated if client enables.
     free_entries();
     return true;
@@ -159,12 +157,11 @@ bool Record_table<ENTRY>::enable(bool ena) noexcept
 
         if (m_entries == nullptr)
         {
-            // Allocate if not done, e.g. first enable, or first enable after size change.
+            // Allocate if not done, e.g. first enable, or first enable after changing the size.
             allocate_entries();
         }
     }
 
-    // xxx but this checks AGAIN on the size!
     m_config.set_enabled(ena);
     return true;
 }
@@ -198,17 +195,29 @@ bool Record_table<ENTRY>::clear() noexcept
 
 // xxx only if not enabled?
 template <typename ENTRY>
-void Record_table<ENTRY>::dump() const
+bool Record_table<ENTRY>::dump() const
 {
     if (m_dump_cb == nullptr)
     {
-        return;
+        return false;
     }
     Record_table_iterator<ENTRY> iter(*this);
     for (iter.begin(); !iter.end(); iter.next())
     {
         m_dump_cb(iter.get_current());
     }
+    return true;
+}
+
+template <typename ENTRY>
+bool Record_table<ENTRY>::dump_state() const
+{
+    if (m_dump_state_cb == nullptr)
+    {
+        return false;
+    }
+    m_dump_state_cb(*this);
+    return true;
 }
 
 // @pre no memory allocated currently.

@@ -16,10 +16,8 @@ public:
     Record_table_config & enable() noexcept;
     Record_table_config & oneshot() noexcept;
 
-    // xxx should we check here if enabled and return error?
     void set_size(unsigned s) noexcept { m_size = s; }
     bool set_enabled(bool) noexcept;
-    // xxx should we check here if enabled and return error?
     void set_oneshot(bool oneshot) noexcept { m_oneshot = oneshot; }
 
     unsigned get_size() const noexcept { return m_size; }

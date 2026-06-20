@@ -1,12 +1,14 @@
 /*
- *
+ * This enforces the rule that a config with size 0 may not be enabled. This avoids writing to
+ * non-existent entries. It is enforced here to avoid clients creating an invalid config and passing
+ * it to a Record_table when the Record_table is created. Other rules, such as not modifying configs
+ * while enabled, are enforced elsewhere.
  */
 #include "record_table_config.h"
 
 // Static instance that contains the default values.
 Record_table_config Record_table_config::CONFIG_DEFAULT;
 
-// xxx do we allow setting size while enabled? Can we put the check here instead of in Record_table?
 Record_table_config &Record_table_config::size(unsigned s) noexcept
 {
     m_size = s;

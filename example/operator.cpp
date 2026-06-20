@@ -14,7 +14,10 @@ void Operator::init(const Record_table_manager_interface & mgr)
 {
     while (true)
     {
-        handle_command(mgr);
+        if (handle_command(mgr) == false)
+        {
+            std::cout << "Command failed on one or more tables." << std::endl;
+        }
     }
 }
 
@@ -27,7 +30,7 @@ void Operator::init(const Record_table_manager_interface & mgr)
 // cin after each command.
 // xxx how do we make it that the 'name substring' can be nothing, to apply to all? Re-order? But param
 // is also optional, so it also needs to be last?
-void Operator::handle_command(const Record_table_manager_interface & table_mgr)
+bool Operator::handle_command(const Record_table_manager_interface & table_mgr)
 {
     std::cout << "handle_command: enter ['e'|'s'|'o'|'d'|'c'|'t'] [name substring] [int param for e, s, o]" << std::endl;
 

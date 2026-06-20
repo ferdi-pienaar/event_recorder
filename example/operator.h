@@ -11,6 +11,6 @@ public:
     void init(const Record_table_manager_interface &mgr);
 
 private:
-    void handle_command(const Record_table_manager_interface &mgr);
+    bool handle_command(const Record_table_manager_interface &mgr);
 };
 
