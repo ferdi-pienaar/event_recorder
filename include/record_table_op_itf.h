@@ -2,6 +2,7 @@
  * The client uses this abstract operator interface to dump Record_table contents and state using
  * callback functions that the client registers when it creates the tables. The client can also
  * modify Record_table config.
+ * The following operations clear the table: clear, set_size.
  */
 #pragma once
 #include "record_table_config.h"

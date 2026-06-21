@@ -227,6 +227,39 @@ TEST_F(Record_table_test, oneshot)
     EXPECT_TRUE(table_iter.end());
 }
 
+// After changing from oneshot to rollover, table records new entries.
+TEST_F(Record_table_test, oneshot_to_rollover)
+{
+    Record_table<int> rtable(Record_table_config().oneshot().size(2).enable());
+
+    rtable.get_write_entry() = 13;
+    rtable.get_write_entry() = 14;
+    EXPECT_FALSE(rtable.active()); // stopped.
+
+    Record_table_iterator<int> table_iter(rtable);
+
+    table_iter.begin();
+    table_iter.next();
+    table_iter.next();
+    EXPECT_TRUE(table_iter.end());
+
+    // Disable, change to rollover mode, and re-enable.
+    EXPECT_TRUE(rtable.enable(false));
+    EXPECT_TRUE(rtable.oneshot(false));
+    EXPECT_TRUE(rtable.enable(true));
+
+    // Table is active and adds new entry.
+    EXPECT_TRUE(rtable.active()); // no longer stopped.
+    rtable.get_write_entry() = 15;
+
+    table_iter.begin();
+    EXPECT_EQ(14, table_iter.get_current());
+    table_iter.next();
+    EXPECT_EQ(15, table_iter.get_current());
+    table_iter.next();
+    EXPECT_TRUE(table_iter.end());
+}
+
 static constexpr unsigned NUM_STAMPS_PER_ENTRY = 2;
 
 void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry)

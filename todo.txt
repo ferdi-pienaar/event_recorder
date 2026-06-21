@@ -1,9 +1,10 @@
-Write something coherent about threading -- can events safely be handled concurrently with
-operator commands? If operator commands do nothing if enabled, it should mean we only need
-to consider the interaction between enable/disable and the recorder API. What if the recorder
-API for a given table is used from more than one thread? We should probably explicitly
-prohibit this, or at least say that done() can only be called from a single thread.
-Do we need to make something atomic to allow concurrent writes?
+Can events safely be handled concurrently with operator commands?
+If operator commands do nothing if enabled, it should mean we only need
+to consider the interaction between enable/disable and the recorder API.
+
+More than 1 thread may concurrently use the event API of a table, but only 1 thread should
+advance to the next entry, i.e. only one thread should call get_write_entry(complete=true) or done().
+Else, xxx.
 
 Another option is to make one-shot only selectable at compile-time: this would make
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.

@@ -15,8 +15,8 @@ constexpr unsigned NUM_ENTRIES = 3;
 
 static Record_table<Double_stamp> ttable(Record_table_config().size(NUM_ENTRIES).enable(),
                                          dump_ts_array_cb, dump_table_state_cb);
-static Record_table<int> itable(Record_table_config().size(NUM_ENTRIES).enable(), dump_int_cb,
-                                dump_table_state_cb);
+static Record_table<int> itable(Record_table_config().size(NUM_ENTRIES).oneshot().enable(),
+                                dump_int_cb, dump_table_state_cb);
 static Record_table_manager table_mgr({{"time", ttable}, {"int", itable}}, dump_name_cb);
 
 int main(int argc, char * argv[])

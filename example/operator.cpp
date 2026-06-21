@@ -67,5 +67,6 @@ bool Operator::handle_command(const Record_table_manager_interface & table_mgr)
         return table_mgr.dump_tables_state(name_ss);
     default:
         std::cout << "unknown command: " << cmd << std::endl;
+        return false;
     }
 }

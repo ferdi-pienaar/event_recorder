@@ -166,6 +166,8 @@ bool Record_table<ENTRY>::enable(bool ena) noexcept
     return true;
 }
 
+// Note that if operator switches to oneshot mode when the table is already full, we'll
+// set m_stopped after one more entry is added in oneshot mode.
 template <typename ENTRY>
 bool Record_table<ENTRY>::oneshot(bool mode) noexcept
 {
@@ -174,6 +176,11 @@ bool Record_table<ENTRY>::oneshot(bool mode) noexcept
         return false;
     }
 
+    if (mode == false)
+    {
+        // In rollover mode, we don't stop.
+        m_stopped = false;
+    }
     m_config.set_oneshot(mode);
     return true;
 }
