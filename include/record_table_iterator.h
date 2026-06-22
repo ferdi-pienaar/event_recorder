@@ -1,5 +1,7 @@
 /*
  * Iterator is used by Record_table::dump to iterate through the written ENTRYs of a table.
+ * Optionally, the operator can use Record_table_iterator directly to examine written ENTRYs
+ * in a table, e.g. to implement a dump feature that only dumps a range of entries.
  */
 #pragma once
 

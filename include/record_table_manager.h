@@ -23,7 +23,7 @@ class Record_table_op_itf;
 class Record_table_manager: public Record_table_manager_interface
 {
 public:
-    using DUMP_NAME_CALLBACK = void (*)(const std::string &);
+    using DUMP_NAME_CALLBACK = std::function<void(const std::string &)>;
 
     Record_table_manager(const std::map<std::string, Record_table_op_itf &> &,
                          DUMP_NAME_CALLBACK dump_name = nullptr);

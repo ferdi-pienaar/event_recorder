@@ -26,6 +26,7 @@
 #include "record_table_config.h"
 #include "record_table_iterator.h" // used in dump method.
 #include <string>
+#include <functional>
 #include <assert.h>
 
 template <typename ENTRY>
@@ -35,8 +36,8 @@ template <typename ENTRY>
 class Record_table : public Record_table_event_itf<ENTRY>, public Record_table_op_itf
 {
 public:
-    using DUMP_CALLBACK = void (*)(const ENTRY &);
-    using DUMP_STATE_CALLBACK = void (*)(const Record_table_op_itf &);
+    using DUMP_CALLBACK = std::function<void(const ENTRY &)>;
+    using DUMP_STATE_CALLBACK = std::function<void(const Record_table_op_itf &)>;
 
     Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT,
                  DUMP_CALLBACK cb = nullptr,

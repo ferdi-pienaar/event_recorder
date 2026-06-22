@@ -17,7 +17,8 @@ void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry)
     }
 }
 
-void dump_int_cb(const int & entry)
+// A functor that can be registered as callback.
+void Int_dumper::operator()(const int & entry)
 {
     std::cout << entry << std::endl;
 }

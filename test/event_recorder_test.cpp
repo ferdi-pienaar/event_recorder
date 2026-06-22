@@ -8,6 +8,7 @@
 #include "record_table_manager.h"
 #include "gtest/gtest.h"
 #include <array>
+#include <vector>
 #include <time.h> // struct timespec
 
 class Record_table_test : public testing::Test
@@ -295,28 +296,59 @@ static void dump_int_cb(const int & entry)
     std::cout << "int entry " << entry << std::endl;
 }
 
-TEST_F(Record_table_test, mgr)
+// Class that implements a 'dumper' functor that lets test check what code-under-test dumps.
+template <typename ENTRY>
+struct Dump_spy
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable(), dump_int_cb);
+    // Save 'dumped' entries so we can examine them later.
+    void operator()(const ENTRY & i)
+    {
+        store.push_back(i);
+    }
+
+    std::vector<ENTRY> store;
+};
+
+TEST_F(Record_table_test, mgr_dump)
+{
+    Dump_spy<int> int_dump_spy;
+    // Use std::ref to avoid passing a copy of int_dump_spy to rtable.
+    Record_table<int> rtable(Record_table_config().size(12).enable(), std::ref(int_dump_spy));
+    Record_table_manager mgr({{"int-table", rtable}});
 
     rtable.get_write_entry() = 11001;
-
-    Record_table_manager mgr({{"int-table", rtable}});
     mgr.dump_tables("int-t");
+
+    ASSERT_EQ(1, int_dump_spy.store.size());
+    EXPECT_EQ(11001, int_dump_spy.store.front());
 }
 
+// Manager dumps data from more than 1 table that it owns, but only for the tables that match the substring.
 TEST_F(Record_table_test, mgr_match2)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable(), dump_int_cb);
-    Record_table<int> rtable2(Record_table_config().size(12).enable(), dump_int_cb);
-    Record_table<int> rtable3(Record_table_config().size(12).enable(), dump_int_cb);
+    Dump_spy<int> int_dump_spy;
+    Record_table<int> itable(Record_table_config().size(12).enable(), std::ref(int_dump_spy));
+    Dump_spy<float> float_dump_spy;
+    Record_table<float> ftable(Record_table_config().size(12).enable(), std::ref(float_dump_spy));
+    Dump_spy<float> float_dump_spy2;
+    Record_table<float> ftable2(Record_table_config().size(12).enable(), std::ref(float_dump_spy2));
 
-    rtable.get_write_entry() = 11001;
-    rtable2.get_write_entry() = 2202;
-    rtable3.get_write_entry() = 333;
+    Record_table_manager mgr({{"int-table", itable}, {"float-table", ftable}, {"xxxtab", ftable2}});
 
-    Record_table_manager mgr({{"int-table1", rtable}, {"x", rtable2}, {"int-table3", rtable3}});
-    mgr.dump_tables("int-t");
+    itable.get_write_entry() = 11001;
+    ftable.get_write_entry() = 2.5;
+    ftable2.get_write_entry() = 3.5;
+
+    mgr.dump_tables("table");
+
+    ASSERT_EQ(1, int_dump_spy.store.size());
+    EXPECT_EQ(11001, int_dump_spy.store.front());
+
+    ASSERT_EQ(1, float_dump_spy.store.size());
+    EXPECT_EQ(2.5, float_dump_spy.store.front());
+
+    // Nothing written to this table because its name does not match 'table' substring.
+    EXPECT_EQ(0, float_dump_spy2.store.size());
 }
 
 static void dump_table_state_cb(const Record_table_op_itf & t)
