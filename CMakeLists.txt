@@ -7,6 +7,13 @@ project(event_recorder
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+function(enable_coverage target)
+    target_compile_options(${target} PRIVATE --coverage)
+    target_link_options(${target} PRIVATE --coverage)
+endfunction()
+
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+
 add_library(event_recorder
     src/record_table_config.cpp
     src/record_table_manager.cpp

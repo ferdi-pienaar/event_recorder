@@ -1,5 +1,5 @@
 Can events safely be handled concurrently with operator commands?
-If operator commands do nothing if enabled, it should mean we only need
+If operator commands do nothing if table is enabled, it should mean we only need
 to consider the interaction between enable/disable and the recorder API.
 
 More than 1 thread may concurrently use the event API of a table, but only 1 thread should
@@ -9,6 +9,13 @@ Else, xxx.
 Another option is to make one-shot only selectable at compile-time: this would make
 code more efficient, since the rollover mode wouldn't need to set 'stopped'.
 Could I have 3 Record_table classes: oneshot, rollover, and selectable-at-runtime?
+These classes would differ where m_stopped and m_config.get_oneshot and .set_oneshot are used.
+I guess config would also have 2 versions: one with oneshot and one without.
+Record_table selectable: use config with oneshot, like current code.
+Record_table rollover: use config without oneshot; has no m_stopped;
+    advance doesn't set m_stopped; active only checks enabled.
+Record_table oneshot: use config without oneshot; has m_stopped;
+    advance may set m_stopped; active is like current code: checks enabled and m_stopped.
 
 Manager commands could return more detailed error than 'command failed on 1 or more tables', or
 report using the existing dump_name_callback, whose name could be changed to indicate more general

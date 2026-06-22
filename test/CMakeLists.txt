@@ -12,6 +12,11 @@ target_link_libraries(event_recorder_test
         GTest::gtest_main
 )
 
+if(ENABLE_COVERAGE)
+    enable_coverage(event_recorder)
+    enable_coverage(event_recorder_test)
+endif()
+
 # Enable testing (if you want to use CTest)
 #enable_testing()
 #add_test(
