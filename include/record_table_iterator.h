@@ -2,6 +2,7 @@
  * Iterator is used by Record_table::dump to iterate through the written ENTRYs of a table.
  * Optionally, the operator can use Record_table_iterator directly to examine written ENTRYs
  * in a table, e.g. to implement a dump feature that only dumps a range of entries.
+ *
  */
 #pragma once
 
@@ -21,8 +22,7 @@ public:
 private:
     const Record_table<ENTRY> & m_table;
     ENTRY * m_current = nullptr;
-    ENTRY * m_end = nullptr;
-    bool m_moved = false;
+    unsigned m_entries_remain = 0; // The number of entries we still have to advance.
 };
 
 template <typename ENTRY>
@@ -43,16 +43,15 @@ void Record_table_iterator<ENTRY>::begin() noexcept
         // All entries not filled, so start with the first entry in the array.
         m_current = m_table.m_entries;
     }
-    // Finish when we get the next entry to be written.
-    m_end = m_table.m_write;
-    m_moved = false;
+
+    m_entries_remain = m_table.m_num_written_entries;
 }
 
 template <typename ENTRY>
 void Record_table_iterator<ENTRY>::next() noexcept
 {
     m_current = m_table.next(m_current);
-    m_moved = true;
+    --m_entries_remain;
 }
 
 template <typename ENTRY>
@@ -64,10 +63,5 @@ const ENTRY & Record_table_iterator<ENTRY>::get_current() noexcept
 template <typename ENTRY>
 bool Record_table_iterator<ENTRY>::end() const noexcept
 {
-    if (m_table.m_num_written_entries == 0)
-    {
-        // No entries written.
-        return true;
-    }
-    return m_moved && (m_current == m_end);
+    return m_entries_remain == 0;
 }
