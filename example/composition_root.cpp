@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
 {
     event_generator_init(ttable, itable);
 
-    Operator oper;
-    oper.init(table_mgr);
+    Operator oper(table_mgr);
+    oper.run();
     return 0;
 }
