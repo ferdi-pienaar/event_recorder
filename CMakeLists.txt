@@ -25,4 +25,5 @@ target_include_directories(event_recorder
         ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(example)
+add_subdirectory(example_early)
 add_subdirectory(test)
