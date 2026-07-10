@@ -3,6 +3,8 @@ find_package(GTest REQUIRED)
 
 add_executable(event_recorder_test
     event_recorder_test.cpp
+    event_recorder_perf_test.cpp
+    get_table_itf.cpp
 )
 
 target_link_libraries(event_recorder_test
@@ -10,6 +12,7 @@ target_link_libraries(event_recorder_test
         event_recorder
         GTest::gtest
         GTest::gtest_main
+        profiler
 )
 
 if(ENABLE_COVERAGE)

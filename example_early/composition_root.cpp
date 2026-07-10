@@ -9,7 +9,6 @@
 #include "event_generator.h"
 #include "record_table.h"
 #include "record_table_manager.h"
-#include <time.h> // struct timespec
 
 // Returns a reference to an initialized table. This may be called before main() runs;
 // table is initialized the first time this function is called.
