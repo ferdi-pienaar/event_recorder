@@ -52,6 +52,7 @@ public:
     // Calling get_write_entry(false) followed by done() is equivalent to calling get_write_entry
     // without params.
     void done() noexcept override;
+    void stop() noexcept override { m_stopped = true; };
 
     // Operator interface.
     bool set_size(unsigned) noexcept override;

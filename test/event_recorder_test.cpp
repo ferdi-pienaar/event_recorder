@@ -24,7 +24,7 @@ TEST_F(Record_table_default_config_test, default_members)
 TEST_F(Record_table_default_config_test, enable_no_entries)
 {
     EXPECT_EQ(0, config.get_size());
-    EXPECT_FALSE(config.get_enabled());
+    EXPECT_FALSE(config.set_enabled(true));
 }
 
 class Record_table_initialized_config_test : public testing::Test
@@ -188,6 +188,16 @@ TEST_F(Record_table_with_entries_test, clear)
     // Verify no entries after clear.
     table_iter.begin();
     EXPECT_TRUE(table_iter.end());
+}
+
+// No new entry created after stop().
+TEST_F(Record_table_with_entries_test, stop)
+{
+    EXPECT_EQ(1, itable.get_num_written_entries());
+    itable.stop();
+    EXPECT_TRUE(itable.is_stopped());
+    itable.get_write_entry() = 13;
+    EXPECT_EQ(1, itable.get_num_written_entries());
 }
 
 TEST_F(Record_table_with_entries_test, iterator_next)

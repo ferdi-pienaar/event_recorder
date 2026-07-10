@@ -13,4 +13,7 @@ public:
     // Calling get_write_entry(false) followed by done() is equivalent to calling get_write_entry
     // without params.
     virtual void done() noexcept = 0;
+    // Call stop when an event of interest has happened, and we don't want to roll over
+    // captured entries that record what happened before the event.
+    virtual void stop() noexcept = 0;
 };
