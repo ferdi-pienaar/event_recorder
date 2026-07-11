@@ -217,27 +217,6 @@ TEST_F(Record_table_with_entries_test, iterator_next)
     EXPECT_TRUE(table_iter.end());
 }
 
-// Some different ways 'record' clients can write and overwrite entries.
-TEST_F(Record_table_with_entries_test, table_overwrite)
-{
-    auto & e1 = itable.get_write_entry(); // advance
-    e1 = 13;
-    e1 = 14; // overwrite
-    itable.get_write_entry(false) = 15; // no advance, so next line overwrites.
-    itable.get_write_entry() = 16; // overwrite
-    itable.get_write_entry(false) = 17;
-    itable.done(); // advance, so next line does not overwrite.
-    itable.get_write_entry() = 18;
-
-    EXPECT_TRUE(itable.dump());
-    ASSERT_EQ(5, dump_spy.store.size());
-    EXPECT_EQ(5, dump_spy.store[0]);
-    EXPECT_EQ(14, dump_spy.store[1]);
-    EXPECT_EQ(16, dump_spy.store[2]);
-    EXPECT_EQ(17, dump_spy.store[3]);
-    EXPECT_EQ(18, dump_spy.store[4]);
-}
-
 TEST_F(Record_table_with_entries_test, rollover)
 {
     // Reduce size to trigger rollover.

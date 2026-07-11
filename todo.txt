@@ -2,6 +2,13 @@ Can events safely be handled concurrently with operator commands?
 If operator commands do nothing if table is enabled, it should mean we only need
 to consider the interaction between enable/disable and the recorder API.
 
+Only event interface writes to table (entries, stop, etc), operator interface only reads.
+Only operator interface writes to config, event interface only reads.
+
+For a given entry, ensure there's no concurrent write to same part of the entry,
+e.g. one thread write one part, another writes another and calls done().
+
+
 More than 1 thread may concurrently use the event API of a table, but only 1 thread should
 advance to the next entry, i.e. only one thread should call get_write_entry(complete=true) or done().
 Else, xxx.

@@ -45,13 +45,7 @@ public:
     ~Record_table();
     // 'Record' interface consists of get_write_entry() and optional done().
     // Returns a reference to an entry to write to.
-    // Client uses default complete=true if it wants to move on the next entry, or false
-    // if it wants to access the current entry again.
-    ENTRY & get_write_entry(bool complete = true) noexcept override;
-    // Client may call done after get_write_entry, to move on to next entry.
-    // Calling get_write_entry(false) followed by done() is equivalent to calling get_write_entry
-    // without params.
-    void done() noexcept override;
+    ENTRY & get_write_entry() noexcept override;
     void stop() noexcept override { m_stopped = true; };
 
     // Operator interface.
@@ -107,27 +101,15 @@ Record_table<ENTRY>::~Record_table()
 }
 
 template <typename ENTRY>
-ENTRY & Record_table<ENTRY>::get_write_entry(bool complete) noexcept
+ENTRY & Record_table<ENTRY>::get_write_entry() noexcept
 {
     if (!active())
     {
         return m_dummy_entry;
     }
     ENTRY & entry = *m_write;
-    if (complete)
-    {
-        advance();
-    }
+    advance();
     return entry;
-}
-
-template <typename ENTRY>
-void Record_table<ENTRY>::done() noexcept
-{
-    if (active())
-    {
-        advance();
-    }
 }
 
 template <typename ENTRY>
