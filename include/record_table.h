@@ -24,6 +24,7 @@
 #include "record_table_event_itf.h"
 #include "record_table_op_itf.h"
 #include "record_table_config.h"
+#include "record_table_private_config.h"
 #include "record_table_iterator.h" // used in dump method.
 #include <string>
 #include <functional>
@@ -72,7 +73,7 @@ private:
     ENTRY * next(ENTRY * entry) const noexcept;
 
     const DUMP_CALLBACK m_dump_cb = nullptr;
-    Record_table_config m_config;
+    Record_table_private_config m_config;
     const DUMP_STATE_CALLBACK m_dump_state_cb = nullptr;
     ENTRY * m_entries = nullptr;
     ENTRY * m_write = nullptr; // Entry to write to.

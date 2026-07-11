@@ -11,33 +11,40 @@
 class Record_table_default_config_test : public testing::Test
 {
 protected:
-   Record_table_config config;
+   Record_table_default_config_test() : pcfg(cfg) {}
+
+   Record_table_config cfg;
+   Record_table_private_config pcfg;
 };
 
 TEST_F(Record_table_default_config_test, default_members)
 {
-    EXPECT_EQ(0, config.get_size());
-    EXPECT_FALSE(config.get_enabled());
+    EXPECT_EQ(0, pcfg.get_size());
+    EXPECT_FALSE(pcfg.get_enabled());
 }
 
-// Can't enable unless size > 0.
-TEST_F(Record_table_default_config_test, enable_no_entries)
+// Don't use input config if enabled but size=0.
+TEST_F(Record_table_default_config_test, init_enabled_size_0)
 {
-    EXPECT_EQ(0, config.get_size());
-    EXPECT_FALSE(config.set_enabled(true));
+    cfg.enable();
+    Record_table_private_config pvt_cfg(cfg);
+    EXPECT_FALSE(pvt_cfg.get_enabled());
 }
 
 class Record_table_initialized_config_test : public testing::Test
 {
 protected:
-   Record_table_config config = Record_table_config().oneshot().size(14).enable();
+   Record_table_initialized_config_test() : pcfg(cfg) {}
+
+   Record_table_config cfg = Record_table_config().oneshot().size(14).enable();
+   Record_table_private_config pcfg;
 };
 
 TEST_F(Record_table_initialized_config_test, verify_params)
 {
-    EXPECT_EQ(14, config.get_size());
-    EXPECT_TRUE(config.get_enabled());
-    EXPECT_TRUE(config.get_oneshot());
+    EXPECT_EQ(14, pcfg.get_size());
+    EXPECT_TRUE(pcfg.get_enabled());
+    EXPECT_TRUE(pcfg.get_oneshot());
 }
 
 class Record_table_test : public testing::Test
