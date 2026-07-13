@@ -13,8 +13,9 @@ class Record_table_perf_test : public testing::Test
     Record_table_perf_test() : table(Record_table_config().size(10).enable())
     {
         itable = &table;
-        // Use external function so compiler optimizer can't remove virtual function call.
-        itable_itf = get_table_itf();
+        // NB: You should verify that optimizer isn't removing virtual function call
+        // e.g. by using gdb to check if there is a direct function call in the test.
+        itable_itf = &table;
     }
 
     virtual void SetUp()
@@ -36,7 +37,7 @@ class Record_table_perf_test : public testing::Test
     Record_table<int> * itable = nullptr;
     Record_table_event_itf<int> * itable_itf = nullptr;
     timespec t1;
-    static constexpr unsigned LOOP_MAX = 1 << 20;
+    static constexpr unsigned LOOP_MAX = 1 << 30;
 };
 
 TEST_F(Record_table_perf_test, use_direct)

@@ -46,7 +46,7 @@ public:
     ~Record_table();
     // 'Record' interface consists of get_write_entry() and optional done().
     // Returns a reference to an entry to write to.
-    ENTRY & get_write_entry() noexcept override;
+    ENTRY & get_write_entry() noexcept override final;
     void stop() noexcept override { m_stopped = true; };
 
     // Operator interface.

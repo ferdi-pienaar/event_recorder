@@ -11,7 +11,7 @@
 
 class Record_table_private_config
 {
-    public:
+public:
     // m_enabled is false if size=0 -- can't enable writing if there's no memory to write.
     Record_table_private_config(const Record_table_config &cfg)
         : m_size(cfg.m_size), m_enabled((cfg.m_size == 0) ? false : cfg.m_enabled),
