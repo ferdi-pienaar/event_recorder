@@ -14,10 +14,10 @@
 int main(int argc, char * argv[])
 {
     constexpr unsigned NUM_ENTRIES = 3;
-    Record_table<Double_stamp> ttable(Record_table_config().size(NUM_ENTRIES).enable(),
+    Record_table<Double_stamp> ttable(Record_table_init_config().size(NUM_ENTRIES).enable(),
                                       dump_ts_array_cb, dump_table_state_cb);
     Int_dumper int_dumper;
-    Record_table<int> itable(Record_table_config().size(NUM_ENTRIES).oneshot().enable(),
+    Record_table<int> itable(Record_table_init_config().size(NUM_ENTRIES).oneshot().enable(),
                              std::ref(int_dumper), dump_table_state_cb);
     Record_table_manager table_mgr({{"time", ttable}, {"int", itable}}, dump_name_cb);
 

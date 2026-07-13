@@ -13,8 +13,8 @@ class Record_table_default_config_test : public testing::Test
 protected:
    Record_table_default_config_test() : pcfg(cfg) {}
 
-   Record_table_config cfg;
-   Record_table_private_config pcfg;
+   Record_table_init_config cfg;
+   Record_table_config pcfg;
 };
 
 TEST_F(Record_table_default_config_test, default_members)
@@ -27,7 +27,7 @@ TEST_F(Record_table_default_config_test, default_members)
 TEST_F(Record_table_default_config_test, init_enabled_size_0)
 {
     cfg.enable();
-    Record_table_private_config pvt_cfg(cfg);
+    Record_table_config pvt_cfg(cfg);
     EXPECT_FALSE(pvt_cfg.get_enabled());
 }
 
@@ -36,8 +36,8 @@ class Record_table_initialized_config_test : public testing::Test
 protected:
    Record_table_initialized_config_test() : pcfg(cfg) {}
 
-   Record_table_config cfg = Record_table_config().oneshot().size(14).enable();
-   Record_table_private_config pcfg;
+   Record_table_init_config cfg = Record_table_init_config().oneshot().size(14).enable();
+   Record_table_config pcfg;
 };
 
 TEST_F(Record_table_initialized_config_test, verify_params)
@@ -54,7 +54,7 @@ protected:
 
 TEST_F(Record_table_test, table_enabled)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable());
+    Record_table<int> rtable(Record_table_init_config().size(12).enable());
 
     EXPECT_TRUE(rtable.enabled());
 }
@@ -62,7 +62,7 @@ TEST_F(Record_table_test, table_enabled)
 // Can't modify size of an enabled table.
 TEST_F(Record_table_test, set_size_enabled)
 {
-    Record_table<int> rtable(Record_table_config().size(1).enable());
+    Record_table<int> rtable(Record_table_init_config().size(1).enable());
 
     EXPECT_FALSE(rtable.set_size(2));
 }
@@ -70,7 +70,7 @@ TEST_F(Record_table_test, set_size_enabled)
 // Can't modify oneshot/rollover of an enabled table.
 TEST_F(Record_table_test, set_oneshot_enabled)
 {
-    Record_table<int> rtable(Record_table_config().size(1).enable());
+    Record_table<int> rtable(Record_table_init_config().size(1).enable());
 
     EXPECT_FALSE(rtable.oneshot(true));
 }
@@ -78,7 +78,7 @@ TEST_F(Record_table_test, set_oneshot_enabled)
 // Can't dump if no dump callback is registered.
 TEST_F(Record_table_test, dump_no_callback)
 {
-    Record_table<int> rtable(Record_table_config().size(1));
+    Record_table<int> rtable(Record_table_init_config().size(1));
 
     EXPECT_FALSE(rtable.dump());
 }
@@ -86,7 +86,7 @@ TEST_F(Record_table_test, dump_no_callback)
 // Can't dump_state if no dump_state callback is registered.
 TEST_F(Record_table_test, dump_state_no_callback)
 {
-    Record_table<int> rtable(Record_table_config().size(1));
+    Record_table<int> rtable(Record_table_init_config().size(1));
 
     EXPECT_FALSE(rtable.dump_state());
 }
@@ -100,7 +100,7 @@ TEST_F(Record_table_test, table_enable_empty_fail)
 
 TEST_F(Record_table_test, table_enable)
 {
-    Record_table<int> rtable(Record_table_config().size(12));
+    Record_table<int> rtable(Record_table_init_config().size(12));
 
     EXPECT_FALSE(rtable.enabled());
     EXPECT_TRUE(rtable.enable(true));
@@ -118,7 +118,7 @@ TEST_F(Record_table_test, table_resize_and_enable)
 
 TEST_F(Record_table_test, write_1_entry)
 {
-    Record_table<int> rtable(Record_table_config().size(12).enable());
+    Record_table<int> rtable(Record_table_init_config().size(12).enable());
 
     rtable.get_write_entry() = 13;
 
@@ -142,9 +142,9 @@ class Record_table_with_entries_test : public testing::Test
 {
   protected:
     Record_table_with_entries_test()
-        : itable(Record_table_config().size(12).enable(), std::ref(dump_spy)),
+        : itable(Record_table_init_config().size(12).enable(), std::ref(dump_spy)),
           table_iter(itable),
-          empty_table(Record_table_config().size(12)),
+          empty_table(Record_table_init_config().size(12)),
           empty_table_iter(empty_table) {};
 
     virtual void SetUp()
@@ -325,11 +325,11 @@ class Record_table_manager_test : public testing::Test
 {
   protected:
     Record_table_manager_test()
-        : itable(Record_table_config().size(12), std::ref(int_dump_spy)),
-          ftable(Record_table_config().size(13).enable(), std::ref(float_dump_spy)),
-          ftable2(Record_table_config().size(14).oneshot().enable(), std::ref(float_dump_spy2),
+        : itable(Record_table_init_config().size(12), std::ref(int_dump_spy)),
+          ftable(Record_table_init_config().size(13).enable(), std::ref(float_dump_spy)),
+          ftable2(Record_table_init_config().size(14).oneshot().enable(), std::ref(float_dump_spy2),
                   std::ref(state_spy)),
-          ftable3(Record_table_config().size(15).oneshot().enable(), std::ref(float_dump_spy3)),
+          ftable3(Record_table_init_config().size(15).oneshot().enable(), std::ref(float_dump_spy3)),
           mgr({{"int-table", itable},
                {"float-table", ftable},
                {"float-table2", ftable2},

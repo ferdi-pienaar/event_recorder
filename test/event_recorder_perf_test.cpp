@@ -5,12 +5,11 @@
 #include "gtest/gtest.h"
 #include "time.h"
 #include <gperftools/profiler.h>
-#include "get_table_itf.h"
 
 class Record_table_perf_test : public testing::Test
 {
   protected:
-    Record_table_perf_test() : table(Record_table_config().size(10).enable())
+    Record_table_perf_test() : table(Record_table_init_config().size(10).enable())
     {
         itable = &table;
         // NB: You should verify that optimizer isn't removing virtual function call

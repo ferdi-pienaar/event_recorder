@@ -1,23 +1,36 @@
 /*
- * Configuration that can be set at startup, and is passed to Record_table.
+ * Configuration that can be set at startup, and is contained in Record_table.
  * These properties may be changed by the client via the operator interface.
- * The methods exist largely for cosmetic reasons; they allow modifying the
- * default values in a readable way.
+ *
+ * xxx Is there any real purpose in making the data members private and accessing
+ * via methods? The setters don't validate the data...
  */
 #pragma once
+#include "record_table_init_config.h"
+#include <atomic>
 
-// Data members are public; data validity is checked when it is installed.
 class Record_table_config
 {
 public:
-    // These methods return a reference to the struct so that calls can be chained together.
-    Record_table_config & size(unsigned s) noexcept;
-    Record_table_config & enable() noexcept;
-    Record_table_config & oneshot() noexcept;
+    // m_enabled is false if size=0 -- can't enable writing if there's no memory to write.
+    Record_table_config(const Record_table_init_config &cfg)
+        : m_size(cfg.m_size), m_enabled((cfg.m_size == 0) ? false : cfg.m_enabled),
+          m_oneshot(cfg.m_oneshot)
+    {
+    }
 
-    static Record_table_config CONFIG_DEFAULT;
+    void set_size(unsigned s) noexcept { m_size = s; }
+    void set_enabled(bool e) noexcept { m_enabled = e; }
+    void set_oneshot(bool oneshot) noexcept { m_oneshot = oneshot; }
 
+    unsigned get_size() const noexcept { return m_size; }
+    bool get_enabled() const noexcept { return m_enabled; }
+    bool get_oneshot() const noexcept { return m_oneshot; }
+
+private:
     unsigned m_size = 0;
-    bool m_enabled = false;
+    // Enable is atomic because the operator sets it after preparing the table for writing;
+    // after it is set, event-writing may proceed in another thread.
+    std::atomic<bool> m_enabled = false;
     bool m_oneshot = false;
 };

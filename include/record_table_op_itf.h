@@ -5,7 +5,7 @@
  * The following operations clear the table: clear, set_size.
  */
 #pragma once
-#include "record_table_config.h"
+#include "record_table_init_config.h"
 
 // Operator's interface to Record_table.
 // xxx noexcept everywhere?

@@ -23,8 +23,8 @@
 #pragma once
 #include "record_table_event_itf.h"
 #include "record_table_op_itf.h"
-#include "record_table_config.h"
-#include "record_table_private_config.h"
+#include "record_table_init_config.h"
+#include "Record_table_config.h"
 #include "record_table_iterator.h" // used in dump method.
 #include <string>
 #include <functional>
@@ -40,7 +40,7 @@ public:
     using DUMP_CALLBACK = std::function<void(const ENTRY &)>;
     using DUMP_STATE_CALLBACK = std::function<void(const Record_table_op_itf &)>;
 
-    Record_table(const Record_table_config & config = Record_table_config::CONFIG_DEFAULT,
+    Record_table(const Record_table_init_config & config = Record_table_init_config::CONFIG_DEFAULT,
                  DUMP_CALLBACK cb = nullptr,
                  DUMP_STATE_CALLBACK dump_state_cb = nullptr);
     ~Record_table();
@@ -73,7 +73,7 @@ private:
     ENTRY * next(ENTRY * entry) const noexcept;
 
     const DUMP_CALLBACK m_dump_cb = nullptr;
-    Record_table_private_config m_config;
+    Record_table_config m_config;
     const DUMP_STATE_CALLBACK m_dump_state_cb = nullptr;
     ENTRY * m_entries = nullptr;
     ENTRY * m_write = nullptr; // Entry to write to.
@@ -84,7 +84,7 @@ private:
 };
 
 template <typename ENTRY>
-Record_table<ENTRY>::Record_table(const Record_table_config & config,
+Record_table<ENTRY>::Record_table(const Record_table_init_config & config,
                                   DUMP_CALLBACK cb,
                                   DUMP_STATE_CALLBACK dump_state_cb) :
     m_config(config), m_dump_state_cb(dump_state_cb), m_dump_cb(cb)

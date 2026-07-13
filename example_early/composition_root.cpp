@@ -12,7 +12,7 @@
 
 // Returns a reference to an initialized table. This may be called before main() runs;
 // table is initialized the first time this function is called.
-static Record_table<timespec> table(Record_table_config().size(4).enable(), dump_ts_cb,
+static Record_table<timespec> table(Record_table_init_config().size(4).enable(), dump_ts_cb,
                                     dump_table_state_cb);
 
 // Create Event_generator and record an event before main() runs.
