@@ -1,13 +1,16 @@
 
 struct timespec;
-template <typename ENTRY> class Record_table_event_itf;
+namespace Event_record
+{
+template <typename ENTRY> class Table_event_itf;
+}
 
 class Event_generator
 {
 public:
-    Event_generator(Record_table_event_itf<timespec> &);
+    Event_generator(Event_record::Table_event_itf<timespec> &);
     int run();
 
 private:
-    Record_table_event_itf<timespec> & m_table;
+    Event_record::Table_event_itf<timespec> &m_table;
 };

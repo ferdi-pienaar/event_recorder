@@ -1,8 +1,8 @@
 /*
- * Record_table_manager allows client operator code to manage groups of Record_table,
- * if all the Record_table have the same type of ENTRY. Each managed Record_table has a name, and
- * Record_table manager can apply operator actions (enable, dump, re-size, clear, etc) to
- * Record_tables whose names match a string input by the operator.
+ * Event_record::Table_manager allows client operator code to manage multiple Event_record::Table.
+ * Each managed Event_record::Table has a name, and Table_manager can apply operator actions
+ * (enable, dump, re-size, clear, etc) to Event_record::Tables whose names match a string input by
+ * the operator.
  *
  * The implementer of the operator code should therefore assign names to the tables such that
  * sub-strings can be used to identify groups of tables by name, e.g. names of tables pertaining to
@@ -13,20 +13,23 @@
  * related to downstream packets with one command.
  */
 #pragma once
-#include <string>
-#include <map>
-#include <functional>
 #include "record_table_manager_itf.h"
+#include <functional>
+#include <map>
+#include <string>
 
-class Record_table_op_itf;
+namespace Event_record
+{
 
-class Record_table_manager: public Record_table_manager_interface
+class Table_op_itf;
+
+class Table_manager : public Table_manager_interface
 {
 public:
     using DUMP_NAME_CALLBACK = std::function<void(const std::string &)>;
 
-    Record_table_manager(const std::map<std::string, Record_table_op_itf &> &,
-                         DUMP_NAME_CALLBACK dump_name = nullptr);
+    Table_manager(const std::map<std::string, Table_op_itf &> &,
+                  DUMP_NAME_CALLBACK dump_name = nullptr);
     bool dump_tables(std::string substring) const override;
     bool enable_tables(std::string substring, bool ena) const override;
     bool oneshot_tables(std::string substring, bool one) const override;
@@ -35,8 +38,10 @@ public:
     bool dump_tables_state(std::string substring) const override;
 
 private:
-    bool do_tables(std::string substring, std::function<bool(Record_table_op_itf &)>) const;
+    bool do_tables(std::string substring, std::function<bool(Table_op_itf &)>) const;
 
-    std::map<std::string, Record_table_op_itf &> m_tables;
+    std::map<std::string, Table_op_itf &> m_tables;
     const DUMP_NAME_CALLBACK m_dump_name = nullptr;
 };
+
+} // namespace Event_record

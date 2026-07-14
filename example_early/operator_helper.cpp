@@ -3,17 +3,19 @@
  * It depends only on the abstract interface record_table_op_itf.h.
  */
 #include "operator_helper.h"
+#include "record_table_op_itf.h"
 #include <iostream>
 #include <string>
-#include "record_table_op_itf.h"
 #include <time.h> // struct timespec
 
-void dump_ts_cb(const timespec & entry)
+using namespace Event_record;
+
+void dump_ts_cb(const timespec &entry)
 {
     std::cout << entry.tv_sec << "." << entry.tv_nsec << std::endl;
 }
 
-void dump_table_state_cb(const Record_table_op_itf & t)
+void dump_table_state_cb(const Table_op_itf &t)
 {
     std::cout << "size " << t.size() << std::endl;
     std::cout << "enabled " << t.enabled() << std::endl;
@@ -22,7 +24,7 @@ void dump_table_state_cb(const Record_table_op_itf & t)
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }
 
-void dump_name_cb(const std::string & name)
+void dump_name_cb(const std::string &name)
 {
-    std::cout << "table '"<< name << "'" << std::endl;
+    std::cout << "table '" << name << "'" << std::endl;
 }

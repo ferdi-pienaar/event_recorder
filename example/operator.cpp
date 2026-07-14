@@ -2,13 +2,13 @@
  * This is the client's command-line interface to a human operator.
  * It displays the data created by the event generator.
  * It depends only on the abstract interface record_table_manager_itf.h. It is independent of
- * the number and type of Record_tables owned by its Record_table_manager.
+ * the number and type of Event_record::Tables owned by its Event_record::Table_manager.
  */
 #include "operator.h"
-#include <iostream>
-#include <string>
-#include <sstream>
 #include "record_table_manager_itf.h"
+#include <iostream>
+#include <sstream>
+#include <string>
 
 void Operator::run()
 {
@@ -29,11 +29,13 @@ void Operator::run()
 //                  d t (dump)
 // Reading cin into a string and then parsing that may be clumsy, but it means I don't have to flush
 // cin after each command.
-// xxx how do we make it that the 'name substring' can be nothing, to apply to all? Re-order? But param
-// is also optional, so it also needs to be last?
+// xxx how do we make it that the 'name substring' can be nothing, to apply to all? Re-order? But
+// param is also optional, so it also needs to be last?
 bool Operator::handle_command()
 {
-    std::cout << "handle_command: enter ['e'|'s'|'o'|'d'|'c'|'t'] [name substring] [int param for e, s, o]" << std::endl;
+    std::cout << "handle_command: enter ['e'|'s'|'o'|'d'|'c'|'t'] [name substring] [int param for "
+                 "e, s, o]"
+              << std::endl;
 
     std::string input;
     std::getline(std::cin, input);

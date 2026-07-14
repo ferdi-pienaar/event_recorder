@@ -1,15 +1,18 @@
 /*
- * The client uses this abstract operator interface to dump Record_table contents and state using
- * callback functions that the client registers when it creates the tables. The client can also
- * modify Record_table config.
- * The following operations clear the table: clear, set_size.
+ * The client uses this abstract operator interface to dump Event_record::Table contents and state
+ * using callback functions that the client registers when it creates the tables. The client can
+ * also modify Table config. The following operations clear the table: clear, set_size.
  */
 #pragma once
 #include "record_table_init_config.h"
 
-// Operator's interface to Record_table.
+namespace Event_record
+{
+
+// Operator's interface to Table.
 // xxx noexcept everywhere?
-class Record_table_op_itf
+
+class Table_op_itf
 {
 public:
     virtual bool set_size(unsigned) noexcept = 0;
@@ -26,3 +29,5 @@ public:
     virtual bool is_stopped() const noexcept = 0;
     virtual unsigned get_num_written_entries() const noexcept = 0;
 };
+
+} // namespace Event_record

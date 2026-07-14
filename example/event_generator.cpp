@@ -3,19 +3,21 @@
  */
 #include "event_generator.h"
 #include "record_table_event_itf.h"
-#include <pthread.h>
 #include <iostream>
+#include <pthread.h>
 #include <unistd.h> // sleep
 
+using namespace Event_record;
+
 // Pointers initialized by injection at initialization.
-static Record_table_event_itf<Double_stamp> *ttable = nullptr;
-static Record_table_event_itf<int> *itable = nullptr;
+static Table_event_itf<Double_stamp> *ttable = nullptr;
+static Table_event_itf<int> *itable = nullptr;
 
 static void *worker(void *arg);
 static void time_event();
 static void int_event(unsigned int);
 
-int event_generator_init(Record_table_event_itf<Double_stamp> &tt, Record_table_event_itf<int> &it)
+int event_generator_init(Table_event_itf<Double_stamp> &tt, Table_event_itf<int> &it)
 {
     ttable = &tt;
     itable = &it;
@@ -52,7 +54,7 @@ void *worker(void *arg)
 // Save an entry, begin and end for an event.
 void time_event()
 {
-    auto & w_entry = ttable->get_write_entry();
+    auto &w_entry = ttable->get_write_entry();
     for (unsigned j = 0; j < NUM_STAMPS_PER_ENTRY; ++j)
     {
         clock_gettime(CLOCK_REALTIME, &w_entry[j]);

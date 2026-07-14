@@ -3,23 +3,28 @@
  */
 #include "record_table_init_config.h"
 
-// Static instance that contains the default values.
-Record_table_init_config Record_table_init_config::CONFIG_DEFAULT;
+namespace Event_record
+{
 
-Record_table_init_config &Record_table_init_config::size(unsigned s) noexcept
+// Static instance that contains the default values.
+Table_init_config Table_init_config::CONFIG_DEFAULT;
+
+Table_init_config &Table_init_config::size(unsigned s) noexcept
 {
     m_size = s;
     return *this;
 }
 
-Record_table_init_config & Record_table_init_config::enable() noexcept
+Table_init_config &Table_init_config::enable() noexcept
 {
     m_enabled = true;
     return *this;
 }
 
-Record_table_init_config & Record_table_init_config::oneshot() noexcept
+Table_init_config &Table_init_config::oneshot() noexcept
 {
     m_oneshot = true;
     return *this;
 }
+
+} // namespace Event_record

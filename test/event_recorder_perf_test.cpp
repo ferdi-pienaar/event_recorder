@@ -6,10 +6,12 @@
 #include "time.h"
 #include <gperftools/profiler.h>
 
+using namespace Event_record;
+
 class Record_table_perf_test : public testing::Test
 {
   protected:
-    Record_table_perf_test() : table(Record_table_init_config().size(10).enable())
+    Record_table_perf_test() : table(Table_init_config().size(10).enable())
     {
         itable = &table;
         // NB: You should verify that optimizer isn't removing virtual function call
@@ -32,9 +34,9 @@ class Record_table_perf_test : public testing::Test
         std::cout << "\nElapsed time: " << elapsed <<  "s" << std::endl;
     }
 
-    Record_table<int> table;
-    Record_table<int> * itable = nullptr;
-    Record_table_event_itf<int> * itable_itf = nullptr;
+    Table<int> table;
+    Table<int> * itable = nullptr;
+    Table_event_itf<int> * itable_itf = nullptr;
     timespec t1;
     static constexpr unsigned LOOP_MAX = 1 << 30;
 };

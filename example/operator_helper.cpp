@@ -3,27 +3,29 @@
  * It depends only on the abstract interface record_table_op_itf.h.
  */
 #include "operator_helper.h"
+#include "record_table_op_itf.h"
 #include <iostream>
 #include <string>
-#include "record_table_op_itf.h"
 
-void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> & entry)
+using namespace Event_record;
+
+void dump_ts_array_cb(const std::array<timespec, NUM_STAMPS_PER_ENTRY> &entry)
 {
     std::cout << "entry size " << entry.size() << std::endl;
 
-    for (auto const & t : entry)
+    for (auto const &t : entry)
     {
         std::cout << t.tv_sec << "." << t.tv_nsec << std::endl;
     }
 }
 
 // A functor that can be registered as callback.
-void Int_dumper::operator()(const int & entry)
+void Int_dumper::operator()(const int &entry)
 {
     std::cout << entry << std::endl;
 }
 
-void dump_table_state_cb(const Record_table_op_itf & t)
+void dump_table_state_cb(const Table_op_itf &t)
 {
     std::cout << "size " << t.size() << std::endl;
     std::cout << "enabled " << t.enabled() << std::endl;
@@ -32,7 +34,7 @@ void dump_table_state_cb(const Record_table_op_itf & t)
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }
 
-void dump_name_cb(const std::string & name)
+void dump_name_cb(const std::string &name)
 {
-    std::cout << "table '"<< name << "'" << std::endl;
+    std::cout << "table '" << name << "'" << std::endl;
 }

@@ -4,8 +4,11 @@
 #pragma once
 #include <string>
 
-// The interface of class Record_table_manager.
-class Record_table_manager_interface
+namespace Event_record
+{
+
+// The interface of class Table_manager.
+class Table_manager_interface
 {
 public:
     virtual bool dump_tables(std::string substring) const = 0;
@@ -15,3 +18,5 @@ public:
     virtual bool clear_tables(std::string substring) const = 0;
     virtual bool dump_tables_state(std::string substring) const = 0;
 };
+
+} // namespace Event_record

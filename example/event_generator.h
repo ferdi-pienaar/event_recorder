@@ -4,6 +4,10 @@
 #pragma once
 #include "example_event_data_types.h"
 
-template <typename ENTRY> class Record_table_event_itf;
+namespace Event_record
+{
+template <typename ENTRY> class Table_event_itf;
+}
 
-int event_generator_init(Record_table_event_itf<Double_stamp> &tt, Record_table_event_itf<int> &it);
+int event_generator_init(Event_record::Table_event_itf<Double_stamp> &tt,
+                         Event_record::Table_event_itf<int> &it);

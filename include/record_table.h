@@ -1,13 +1,12 @@
 /*
- * A record table holds data of type given by its template parameter ENTRY.
- * It has two interfaces (not currently implemented as separate interfaces
- * in code):
- * The 'record' interface allows instrumented code to:
+ * A Table holds data of type given by its template parameter ENTRY.
+ * It has two interfaces:
+ * The 'event' interface allows instrumented code to:
  * - get_write_entry returns a writable ENTRY in RAM. This could be e.g.
  *   a timestamp generated at run-time.
- * - Indicate if the entry is complete and the next call to get_write_entry returns a new entry.
- *   True by default. If instrumented code chooses 'false', the same entry is returned by the next
- *   call to get_write_entry, e.g. to overwrite or modify an entry.
+ * - stop: disable writing new entries, e.g. when something has happened such
+ *   as an error, and we don't want to save new entries since they could overwrite
+ *   old entries which may give a clue to the source of the error.
  *
  * The 'operator' interface allows an operator to work with the records of ENTRYs.
  * - Enable: when enabled, instrumented code saves ENTRYs, else none are saved.
@@ -21,32 +20,32 @@
  *   entries); overwrite means repeatedly overwrite old entries with new ones.
  */
 #pragma once
+#include "record_table_config.h"
 #include "record_table_event_itf.h"
-#include "record_table_op_itf.h"
 #include "record_table_init_config.h"
-#include "Record_table_config.h"
 #include "record_table_iterator.h" // used in dump method.
-#include <string>
-#include <functional>
+#include "record_table_op_itf.h"
 #include <assert.h>
+#include <functional>
+#include <string>
 
-template <typename ENTRY>
-class Record_table_iterator;
+namespace Event_record
+{
 
-template <typename ENTRY>
-class Record_table : public Record_table_event_itf<ENTRY>, public Record_table_op_itf
+template <typename ENTRY> class Table_iterator;
+
+template <typename ENTRY> class Table : public Table_event_itf<ENTRY>, public Table_op_itf
 {
 public:
     using DUMP_CALLBACK = std::function<void(const ENTRY &)>;
-    using DUMP_STATE_CALLBACK = std::function<void(const Record_table_op_itf &)>;
+    using DUMP_STATE_CALLBACK = std::function<void(const Table_op_itf &)>;
 
-    Record_table(const Record_table_init_config & config = Record_table_init_config::CONFIG_DEFAULT,
-                 DUMP_CALLBACK cb = nullptr,
-                 DUMP_STATE_CALLBACK dump_state_cb = nullptr);
-    ~Record_table();
+    Table(const Table_init_config &config = Table_init_config::CONFIG_DEFAULT,
+          DUMP_CALLBACK cb = nullptr, DUMP_STATE_CALLBACK dump_state_cb = nullptr);
+    ~Table();
     // 'Record' interface consists of get_write_entry() and optional done().
     // Returns a reference to an entry to write to.
-    ENTRY & get_write_entry() noexcept override final;
+    ENTRY &get_write_entry() noexcept override final;
     void stop() noexcept override { m_stopped = true; };
 
     // Operator interface.
@@ -64,30 +63,30 @@ public:
     bool is_stopped() const noexcept override { return m_stopped; }
     unsigned get_num_written_entries() const noexcept override { return m_num_written_entries; }
 
-    friend class Record_table_iterator<ENTRY>;
+    friend class Table_iterator<ENTRY>;
 
 private:
     void allocate_entries();
     void free_entries();
     void advance() noexcept;
-    ENTRY * next(ENTRY * entry) const noexcept;
+    ENTRY *next(ENTRY *entry) const noexcept;
 
     const DUMP_CALLBACK m_dump_cb = nullptr;
-    Record_table_config m_config;
+    Table_config m_config;
     const DUMP_STATE_CALLBACK m_dump_state_cb = nullptr;
-    ENTRY * m_entries = nullptr;
-    ENTRY * m_write = nullptr; // Entry to write to.
-    ENTRY * m_end = nullptr; // Pointer past the end of the allocated entries.
-    ENTRY m_dummy_entry; // Entry returned to client if disabled: client may write to it without effect.
+    ENTRY *m_entries = nullptr;
+    ENTRY *m_write = nullptr; // Entry to write to.
+    ENTRY *m_end = nullptr;   // Pointer past the end of the allocated entries.
+    ENTRY m_dummy_entry; // Entry returned to client if disabled: client may write to it without
+                         // effect.
     unsigned m_num_written_entries = 0; // Number of written entries, capped at config.size.
-    bool m_stopped = false; // One-shot full => true, clear => false.
+    bool m_stopped = false;             // One-shot full => true, clear => false.
 };
 
 template <typename ENTRY>
-Record_table<ENTRY>::Record_table(const Record_table_init_config & config,
-                                  DUMP_CALLBACK cb,
-                                  DUMP_STATE_CALLBACK dump_state_cb) :
-    m_config(config), m_dump_state_cb(dump_state_cb), m_dump_cb(cb)
+Table<ENTRY>::Table(const Table_init_config &config, DUMP_CALLBACK cb,
+                    DUMP_STATE_CALLBACK dump_state_cb)
+    : m_config(config), m_dump_state_cb(dump_state_cb), m_dump_cb(cb)
 {
     if (m_config.get_enabled())
     {
@@ -95,26 +94,23 @@ Record_table<ENTRY>::Record_table(const Record_table_init_config & config,
     }
 }
 
-template <typename ENTRY>
-Record_table<ENTRY>::~Record_table()
+template <typename ENTRY> Table<ENTRY>::~Table()
 {
     free_entries();
 }
 
-template <typename ENTRY>
-ENTRY & Record_table<ENTRY>::get_write_entry() noexcept
+template <typename ENTRY> ENTRY &Table<ENTRY>::get_write_entry() noexcept
 {
     if (!active())
     {
         return m_dummy_entry;
     }
-    ENTRY & entry = *m_write;
+    ENTRY &entry = *m_write;
     advance();
     return entry;
 }
 
-template <typename ENTRY>
-bool Record_table<ENTRY>::set_size(unsigned size) noexcept
+template <typename ENTRY> bool Table<ENTRY>::set_size(unsigned size) noexcept
 {
     if (m_config.get_enabled())
     {
@@ -129,8 +125,7 @@ bool Record_table<ENTRY>::set_size(unsigned size) noexcept
     return true;
 }
 
-template <typename ENTRY>
-bool Record_table<ENTRY>::enable(bool ena) noexcept
+template <typename ENTRY> bool Table<ENTRY>::enable(bool ena) noexcept
 {
     if (ena)
     {
@@ -153,8 +148,7 @@ bool Record_table<ENTRY>::enable(bool ena) noexcept
 
 // Note that if operator switches to oneshot mode when the table is already full, we'll
 // set m_stopped after one more entry is added in oneshot mode.
-template <typename ENTRY>
-bool Record_table<ENTRY>::oneshot(bool mode) noexcept
+template <typename ENTRY> bool Table<ENTRY>::oneshot(bool mode) noexcept
 {
     if (m_config.get_enabled())
     {
@@ -171,8 +165,7 @@ bool Record_table<ENTRY>::oneshot(bool mode) noexcept
 }
 
 // This clears what has been written, but does not free entry memory.
-template <typename ENTRY>
-bool Record_table<ENTRY>::clear() noexcept
+template <typename ENTRY> bool Table<ENTRY>::clear() noexcept
 {
     if (m_config.get_enabled())
     {
@@ -186,14 +179,13 @@ bool Record_table<ENTRY>::clear() noexcept
 }
 
 // xxx only if not enabled?
-template <typename ENTRY>
-bool Record_table<ENTRY>::dump() const
+template <typename ENTRY> bool Table<ENTRY>::dump() const
 {
     if (m_dump_cb == nullptr)
     {
         return false;
     }
-    Record_table_iterator<ENTRY> iter(*this);
+    Table_iterator<ENTRY> iter(*this);
     for (iter.begin(); !iter.end(); iter.next())
     {
         m_dump_cb(iter.get_current());
@@ -201,8 +193,7 @@ bool Record_table<ENTRY>::dump() const
     return true;
 }
 
-template <typename ENTRY>
-bool Record_table<ENTRY>::dump_state() const
+template <typename ENTRY> bool Table<ENTRY>::dump_state() const
 {
     if (m_dump_state_cb == nullptr)
     {
@@ -213,8 +204,7 @@ bool Record_table<ENTRY>::dump_state() const
 }
 
 // @pre no memory allocated currently.
-template <typename ENTRY>
-void Record_table<ENTRY>::allocate_entries()
+template <typename ENTRY> void Table<ENTRY>::allocate_entries()
 {
     assert(m_entries == nullptr);
 
@@ -224,8 +214,7 @@ void Record_table<ENTRY>::allocate_entries()
     m_write = m_entries;
 }
 
-template <typename ENTRY>
-void Record_table<ENTRY>::free_entries()
+template <typename ENTRY> void Table<ENTRY>::free_entries()
 {
     if (m_entries != nullptr)
     {
@@ -235,8 +224,7 @@ void Record_table<ENTRY>::free_entries()
     }
 }
 
-template <typename ENTRY>
-void Record_table<ENTRY>::advance() noexcept
+template <typename ENTRY> void Table<ENTRY>::advance() noexcept
 {
     m_write = next(m_write);
     if (m_num_written_entries < m_config.get_size())
@@ -249,8 +237,7 @@ void Record_table<ENTRY>::advance() noexcept
     }
 }
 
-template <typename ENTRY>
-ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
+template <typename ENTRY> ENTRY *Table<ENTRY>::next(ENTRY *entry) const noexcept
 {
     auto nxt = ++entry;
     if (nxt == m_end)
@@ -260,3 +247,5 @@ ENTRY * Record_table<ENTRY>::next(ENTRY * entry) const noexcept
     }
     return nxt;
 }
+
+} // namespace Event_record
