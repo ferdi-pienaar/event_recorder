@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 
+// Note: this fn never returns.
 void Operator::run()
 {
     while (true)
@@ -21,53 +22,70 @@ void Operator::run()
     }
 }
 
-// Note: this fn never returns.
 // Read line from stdin and make corresponding calls to Table Manager.
-// Example command: e t 0 (disable)
-//                  s t 100 (set size 100)
-//                  e t 1 (enable)
-//                  d t (dump)
+// Example commands: "enable": enable all tables
+//                   "e": enable all tables
+//                   "si 10": set all tables to size 10.
+//                   "si 12 ti": set to size 12 the tables with names including string "ti"
+// You may use only the initial letters of each command, but must write at least "si" to
+// distinguish "size" from "state" and "di" to distinguish "disable" from "dump".
 // Reading cin into a string and then parsing that may be clumsy, but it means I don't have to flush
 // cin after each command.
-// xxx how do we make it that the 'name substring' can be nothing, to apply to all? Re-order? But
-// param is also optional, so it also needs to be last?
 bool Operator::handle_command()
 {
-    std::cout << "handle_command: enter ['e'|'s'|'o'|'d'|'c'|'t'] [name substring] [int param for "
-                 "e, s, o]"
+    std::cout << "handle_command: dump, enable, disable, state, size, one, roll, clear"
               << std::endl;
 
     std::string input;
     std::getline(std::cin, input);
     std::istringstream line(input);
 
-    char cmd;
+    std::string cmd;
+    line >> cmd;
     std::string name_ss;
-    line >> cmd >> name_ss;
-    std::cout << "cmd '" << cmd << "' name sub-string '" << name_ss << "'" << std::endl;
-
-    unsigned param;
-    switch (cmd)
+    if (std::string("dump").rfind(cmd, 0) == 0) // Before "disable", so "d" is "dump" not "disable".
     {
-    case 'e': // enable/disable
-        line >> param;
-        std::cout << (param ? "enable" : "disable") << std::endl;
-        return m_mgr.enable_tables(name_ss, param);
-    case 's': // size
-        line >> param;
-        std::cout << "size " << param << std::endl;
-        return m_mgr.size_tables(name_ss, param);
-    case 'o': // oneshot/rollover
-        line >> param;
-        std::cout << (param ? "oneshot" : "rollover") << std::endl;
-        return m_mgr.oneshot_tables(name_ss, param);
-    case 'd': // dump
+        line >> name_ss;
         return m_mgr.dump_tables(name_ss);
-    case 'c': // clear
-        return m_mgr.clear_tables(name_ss);
-    case 't': // tables state
+    }
+    if (std::string("state").rfind(cmd, 0) == 0) // Before "size", so "s" is "state" not "size".
+    {
+        line >> name_ss;
         return m_mgr.dump_tables_state(name_ss);
-    default:
+    }
+    if (std::string("enable").rfind(cmd, 0) == 0)
+    {
+        line >> name_ss;
+        return m_mgr.enable_tables(name_ss, true);
+    }
+    if (std::string("disable").rfind(cmd, 0) == 0)
+    {
+        line >> name_ss;
+        return m_mgr.enable_tables(name_ss, false);
+    }
+    if (std::string("oneshot").rfind(cmd, 0) == 0)
+    {
+        line >> name_ss;
+        return m_mgr.oneshot_tables(name_ss, true);
+    }
+    if (std::string("rollover").rfind(cmd, 0) == 0)
+    {
+        line >> name_ss;
+        return m_mgr.oneshot_tables(name_ss, false);
+    }
+    if (std::string("clear").rfind(cmd, 0) == 0)
+    {
+        line >> name_ss;
+        return m_mgr.clear_tables(name_ss);
+    }
+    if (std::string("size").rfind(cmd, 0) == 0)
+    {
+        unsigned size;
+        line >> size >> name_ss;
+        return m_mgr.size_tables(name_ss, size);
+    }
+    else
+    {
         std::cout << "unknown command: " << cmd << std::endl;
         return false;
     }
