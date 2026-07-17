@@ -35,7 +35,7 @@ target_link_libraries(my_program
     PRIVATE
         event_recorder::event_recorder
 )
-
+```
 And to configure your project:
 ```sh
 cmake -S . -B build -DCMAKE_PREFIX_PATH=<install-prefix>
@@ -60,9 +60,19 @@ The operator controls the table via the manager interface. The following can be 
 
 Each of these operations can be applied to one or more tables, depending on whether the string passed to the manager matches the names of the table(s).
 
+# Thread safety
+For a given table, don't allow concurrent calls to get_write_entry(), i.e. either do this in one thread only or use a mutex.
+
+Operator interface functions that modify data used by the event interface are only accessible when the table is disabled for writing, and the variable that controls this is atomic, thus ensuring there are no data races between event interface and operator interface. The operator interface functions in question are: set_size(), oneshot(), clear().
+
 # Design
 This library is loosely coupled to its clients:
 - As shown in the example, if the user adds more Tables to a Table manager in composition_root.cpp, the code that manages and displays the Tables (in operator.cpp) does not have to change.
 - The user can change the type of ENTRY in the Tables, and neither the event_recorder library code nor the code that manages and displays the tables (in operator.cpp) changes; the user just defines ENTRY and a function or class that dumps the contents of an entry, e.g. prints it to stdout.
 - The client can change the functions that dump entries without changing the library or changing the code that manages and displays the tables (in operator.cpp in the example).
 - In the client code, only composition_root.cpp depends on the library implementation; operator.cpp and operator_helper.cpp depend only on an interface, record_table_manager_itf.h, and event_generator.cpp depends only on another interface, record_table_event_itf.h. This makes operator.cpp, operator_helper.cpp and event_generator.cpp testable independently of this library.
+
+# Todo
+Manager commands could return more detailed error than 'command failed on 1 or more tables', or
+report using the existing dump_name_callback, whose name could be changed to indicate more general
+use.
