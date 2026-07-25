@@ -14,6 +14,80 @@ Tables are initialized with these properties, all of which can be changed at run
 - enabled or disabled: whether new events can be saved to the table or not.
 - oneshot/rollover: one-shot tables stop recording when they are full; in rollover tables new events overwrite old ones.
 
+The following diagram shows the relationship between the classes in the library (namespace Event_record), and the client entities that use the library.
+- The Composition_root creates the Tables and associates them with their Table_manager.
+- The Event Generator saves events in Tables.
+- The Operator displays and manages tables, via their Table_manager.
+
+```mermaid
+
+---
+config:
+  layout: elk
+  class:
+    hideEmptyMembersBox: true
+---
+
+classDiagram
+    direction LR
+
+    class Composition_root
+
+    namespace Event_record {
+
+        class Table_op_itf <<interface>> {
+            +set_size(unsigned)
+            +enable(bool)
+            +oneshot(bool)
+            +clear()
+            +dump()
+            +dump_state()
+            +unsigned size()
+            +bool enabled()
+            +bool oneshot()
+            +bool active()
+            +bool is_stopped()
+            +unsigned get_num_written_entries()
+        }
+
+        class Table_event_itf <<interface>> {
+            +ENTRY &get_write_entry()
+            +stop()
+        }
+
+        class Table
+        class Table_manager
+        class Table_manager_interface <<interface>> {
+            +dump_tables(name)
+            +enable_tables(name, bool)
+            +oneshot_tables(name, bool)
+            +size_tables(name, unsigned)
+            +clear_tables(name)
+            +dump_tables_state(name)
+        }
+
+        class Table_config {
+            unsigned size
+            bool enabled
+            bool oneshot
+        }
+
+    }
+    Table ..|> Table_op_itf : implements
+    Table ..|> Table_event_itf : implements
+    Table *--> Table_config
+
+    Table_event_itf <.. Event Generator : saves event data in table
+    Table_op_itf <.. Table State Dumper
+    Table_manager --> Table_op_itf : manages
+    Table_manager ..|> Table_manager_interface : implements
+    Table_manager_interface  <.. Operator : display and manage tables
+
+    Composition_root *--> Table_manager
+    Composition_root *--> Table
+
+```
+
 # Building and installing the library
 CMake projects can install and use this library as follows:
 Clone project and enter the project directory. Then configure, build and install the library:
