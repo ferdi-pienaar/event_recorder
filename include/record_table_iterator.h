@@ -4,34 +4,35 @@
  * in a table, e.g. to implement a dump feature that only dumps a range of entries.
  */
 #pragma once
+#include "rollover_type.h"
 
 namespace Event_record
 {
 
-template <typename ENTRY> class Table;
+template <typename ENTRY, RolloverType RT> class Table;
 
 // Iterate over written entries in Event_record::Table, from oldest to newest.
-template <typename ENTRY> class Table_iterator
+template <typename ENTRY, RolloverType RT = RolloverType::RuntimeSelect> class Table_iterator
 {
 public:
-    Table_iterator(const Table<ENTRY> &table);
+    Table_iterator(const Table<ENTRY, RT> &table);
     void begin() noexcept;
     void next() noexcept;
     const ENTRY &get_current() noexcept;
     bool end() const noexcept;
 
 private:
-    const Table<ENTRY> &m_table;
+    const Table<ENTRY, RT> &m_table;
     ENTRY *m_current = nullptr;
     unsigned m_entries_remain = 0; // The number of entries we still have to advance.
 };
 
-template <typename ENTRY>
-Table_iterator<ENTRY>::Table_iterator(const Table<ENTRY> &table) : m_table(table)
+template <typename ENTRY, RolloverType RT>
+Table_iterator<ENTRY, RT>::Table_iterator(const Table<ENTRY, RT> &table) : m_table(table)
 {
 }
 
-template <typename ENTRY> void Table_iterator<ENTRY>::begin() noexcept
+template <typename ENTRY, RolloverType RT> void Table_iterator<ENTRY, RT>::begin() noexcept
 {
     if (m_table.m_num_written_entries == m_table.m_config.get_size())
     {
@@ -47,18 +48,18 @@ template <typename ENTRY> void Table_iterator<ENTRY>::begin() noexcept
     m_entries_remain = m_table.m_num_written_entries;
 }
 
-template <typename ENTRY> void Table_iterator<ENTRY>::next() noexcept
+template <typename ENTRY, RolloverType RT> void Table_iterator<ENTRY, RT>::next() noexcept
 {
     m_current = m_table.next(m_current);
     --m_entries_remain;
 }
 
-template <typename ENTRY> const ENTRY &Table_iterator<ENTRY>::get_current() noexcept
+template <typename ENTRY, RolloverType RT> const ENTRY &Table_iterator<ENTRY, RT>::get_current() noexcept
 {
     return *m_current;
 }
 
-template <typename ENTRY> bool Table_iterator<ENTRY>::end() const noexcept
+template <typename ENTRY, RolloverType RT> bool Table_iterator<ENTRY, RT>::end() const noexcept
 {
     return m_entries_remain == 0;
 }

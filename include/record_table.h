@@ -20,6 +20,7 @@
  *   entries); overwrite means repeatedly overwrite old entries with new ones.
  */
 #pragma once
+#include "rollover_type.h"
 #include "record_table_config.h"
 #include "record_table_event_itf.h"
 #include "record_table_init_config.h"
@@ -32,9 +33,10 @@
 namespace Event_record
 {
 
-template <typename ENTRY> class Table_iterator;
+template <typename ENTRY, RolloverType RT> class Table_iterator;
 
-template <typename ENTRY> class Table : public Table_event_itf<ENTRY>, public Table_op_itf
+template <typename ENTRY, RolloverType RT = RolloverType::RuntimeSelect>
+class Table : public Table_event_itf<ENTRY>, public Table_op_itf
 {
 public:
     using DUMP_CALLBACK = std::function<void(const ENTRY &)>;
@@ -58,12 +60,12 @@ public:
     bool dump_state() const override;
     unsigned size() const noexcept override { return m_config.get_size(); }
     bool enabled() const noexcept override { return m_config.get_enabled(); }
-    bool oneshot() const noexcept override { return m_config.get_oneshot(); }
+    bool oneshot() const noexcept override;
     bool active() const noexcept override { return m_config.get_enabled() && !m_stopped; }
     bool is_stopped() const noexcept override { return m_stopped; }
     unsigned get_num_written_entries() const noexcept override { return m_num_written_entries; }
 
-    friend class Table_iterator<ENTRY>;
+    friend class Table_iterator<ENTRY, RT>;
 
 private:
     void allocate_entries();
@@ -83,8 +85,8 @@ private:
     bool m_stopped = false;             // One-shot full => true, clear => false.
 };
 
-template <typename ENTRY>
-Table<ENTRY>::Table(const Table_init_config &config, DUMP_CALLBACK cb,
+template <typename ENTRY, RolloverType RT>
+Table<ENTRY, RT>::Table(const Table_init_config &config, DUMP_CALLBACK cb,
                     DUMP_STATE_CALLBACK dump_state_cb)
     : m_config(config), m_dump_state_cb(dump_state_cb), m_dump_cb(cb)
 {
@@ -94,12 +96,12 @@ Table<ENTRY>::Table(const Table_init_config &config, DUMP_CALLBACK cb,
     }
 }
 
-template <typename ENTRY> Table<ENTRY>::~Table()
+template <typename ENTRY, RolloverType RT> Table<ENTRY, RT>::~Table()
 {
     free_entries();
 }
 
-template <typename ENTRY> ENTRY &Table<ENTRY>::get_write_entry() noexcept
+template <typename ENTRY, RolloverType RT> ENTRY &Table<ENTRY, RT>::get_write_entry() noexcept
 {
     if (!active())
     {
@@ -110,7 +112,7 @@ template <typename ENTRY> ENTRY &Table<ENTRY>::get_write_entry() noexcept
     return entry;
 }
 
-template <typename ENTRY> bool Table<ENTRY>::set_size(unsigned size) noexcept
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::set_size(unsigned size) noexcept
 {
     if (m_config.get_enabled())
     {
@@ -125,7 +127,7 @@ template <typename ENTRY> bool Table<ENTRY>::set_size(unsigned size) noexcept
     return true;
 }
 
-template <typename ENTRY> bool Table<ENTRY>::enable(bool ena) noexcept
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::enable(bool ena) noexcept
 {
     if (ena)
     {
@@ -148,24 +150,32 @@ template <typename ENTRY> bool Table<ENTRY>::enable(bool ena) noexcept
 
 // Note that if operator switches to oneshot mode when the table is already full, we'll
 // set m_stopped after one more entry is added in oneshot mode.
-template <typename ENTRY> bool Table<ENTRY>::oneshot(bool mode) noexcept
+template <typename ENTRY, RolloverType RT>
+bool Table<ENTRY, RT>::oneshot(bool mode_oneshot) noexcept
 {
+    // Accept setting mode to oneshot, reject rollover.
+    if (RT == RolloverType::Oneshot) return mode_oneshot;
+
+    // Accept setting mode to rollover, reject oneshot.
+    if (RT == RolloverType::Rollover) return not mode_oneshot;
+
+    // Mode can be modified at run-time, so modify it (if not enabled).
     if (m_config.get_enabled())
     {
         return false;
     }
 
-    if (mode == false)
+    if (!mode_oneshot)
     {
         // In rollover mode, we don't stop.
         m_stopped = false;
     }
-    m_config.set_oneshot(mode);
+    m_config.set_oneshot(mode_oneshot);
     return true;
 }
 
 // This clears what has been written, but does not free entry memory.
-template <typename ENTRY> bool Table<ENTRY>::clear() noexcept
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::clear() noexcept
 {
     if (m_config.get_enabled())
     {
@@ -179,13 +189,13 @@ template <typename ENTRY> bool Table<ENTRY>::clear() noexcept
 }
 
 // xxx only if not enabled?
-template <typename ENTRY> bool Table<ENTRY>::dump() const
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::dump() const
 {
     if (m_dump_cb == nullptr)
     {
         return false;
     }
-    Table_iterator<ENTRY> iter(*this);
+    Table_iterator<ENTRY, RT> iter(*this);
     for (iter.begin(); !iter.end(); iter.next())
     {
         m_dump_cb(iter.get_current());
@@ -193,7 +203,7 @@ template <typename ENTRY> bool Table<ENTRY>::dump() const
     return true;
 }
 
-template <typename ENTRY> bool Table<ENTRY>::dump_state() const
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::dump_state() const
 {
     if (m_dump_state_cb == nullptr)
     {
@@ -203,8 +213,15 @@ template <typename ENTRY> bool Table<ENTRY>::dump_state() const
     return true;
 }
 
+template <typename ENTRY, RolloverType RT> bool Table<ENTRY, RT>::oneshot() const noexcept
+{
+    if (RT == RolloverType::Oneshot) return true;
+    if (RT == RolloverType::Rollover) return false;
+    return m_config.get_oneshot();
+}
+
 // @pre no memory allocated currently.
-template <typename ENTRY> void Table<ENTRY>::allocate_entries()
+template <typename ENTRY, RolloverType RT> void Table<ENTRY, RT>::allocate_entries()
 {
     assert(m_entries == nullptr);
 
@@ -214,7 +231,7 @@ template <typename ENTRY> void Table<ENTRY>::allocate_entries()
     m_write = m_entries;
 }
 
-template <typename ENTRY> void Table<ENTRY>::free_entries()
+template <typename ENTRY, RolloverType RT> void Table<ENTRY, RT>::free_entries()
 {
     if (m_entries != nullptr)
     {
@@ -224,20 +241,28 @@ template <typename ENTRY> void Table<ENTRY>::free_entries()
     }
 }
 
-template <typename ENTRY> void Table<ENTRY>::advance() noexcept
+template <typename ENTRY, RolloverType RT> void Table<ENTRY, RT>::advance() noexcept
 {
     m_write = next(m_write);
     if (m_num_written_entries < m_config.get_size())
     {
         ++m_num_written_entries;
     }
-    if (m_config.get_oneshot() && (m_num_written_entries == m_config.get_size()))
+
+    if (RT == RolloverType::Rollover) return;
+
+    if (m_num_written_entries == m_config.get_size())
     {
-        m_stopped = true;
+        // Full, so set stopped if oneshot
+        if ((RT == RolloverType::Oneshot) || m_config.get_oneshot())
+        {
+            m_stopped = true;
+        }
     }
 }
 
-template <typename ENTRY> ENTRY *Table<ENTRY>::next(ENTRY *entry) const noexcept
+template <typename ENTRY, RolloverType RT>
+ENTRY *Table<ENTRY, RT>::next(ENTRY *entry) const noexcept
 {
     auto nxt = ++entry;
     if (nxt == m_end)
@@ -247,5 +272,11 @@ template <typename ENTRY> ENTRY *Table<ENTRY>::next(ENTRY *entry) const noexcept
     }
     return nxt;
 }
+
+template<typename ENTRY>
+using TableRollover = Table<ENTRY, RolloverType::Rollover>;
+
+template<typename ENTRY>
+using TableOneshot = Table<ENTRY, RolloverType::Oneshot>;
 
 } // namespace Event_record

@@ -12,15 +12,17 @@ using namespace Event_record;
 // Pointers initialized by injection at initialization.
 static Table_event_itf<Double_stamp> *ttable = nullptr;
 static Table_event_itf<int> *itable = nullptr;
+static Table_event_itf<int> *itable2 = nullptr;
 
 static void *worker(void *arg);
 static void time_event();
 static void int_event(unsigned int);
 
-int event_generator_init(Table_event_itf<Double_stamp> &tt, Table_event_itf<int> &it)
+int event_generator_init(Table_event_itf<Double_stamp> &tt, Table_event_itf<int> &it, Table_event_itf<int> &it2)
 {
     ttable = &tt;
     itable = &it;
+    itable2 = &it2;
 
     // Spawn a thread in which we generate events periodically.
     pthread_t thread;
@@ -66,5 +68,6 @@ void int_event(unsigned int c)
     if (c % 3 == 0)
     {
         itable->get_write_entry() = c * 10;
+        itable2->get_write_entry() = c * 100;
     }
 }

@@ -77,11 +77,11 @@ classDiagram
     Table ..|> Table_event_itf : implements
     Table *--> Table_config
 
-    Table_event_itf <.. Event Generator : saves event data in table
-    Table_op_itf <.. Table State Dumper
+    Table_event_itf <-- Event Generator : saves event data in table
+    Table_op_itf <-- Table State Dumper
     Table_manager --> Table_op_itf : manages
     Table_manager ..|> Table_manager_interface : implements
-    Table_manager_interface  <.. Operator : display and manage tables
+    Table_manager_interface  <-- Operator : display and manage tables
 
     Composition_root *--> Table_manager
     Composition_root *--> Table
@@ -147,6 +147,4 @@ This library is loosely coupled to its clients:
 - In the client code, only composition_root.cpp depends on the library implementation; operator.cpp and operator_helper.cpp depend only on an interface, record_table_manager_itf.h, and event_generator.cpp depends only on another interface, record_table_event_itf.h. This makes operator.cpp, operator_helper.cpp and event_generator.cpp testable independently of this library.
 
 # Todo
-Manager commands could return more detailed error than 'command failed on 1 or more tables', or
-report using the existing dump_name_callback, whose name could be changed to indicate more general
-use.
+Manager commands could return more detailed error than 'command failed on 1 or more tables', or report using the existing dump_name callback, whose name could be changed to indicate more general use.

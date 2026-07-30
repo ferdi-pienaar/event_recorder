@@ -16,14 +16,16 @@ using namespace Event_record;
 int main(int argc, char *argv[])
 {
     constexpr unsigned NUM_ENTRIES = 3;
-    Table<Double_stamp> ttable(Table_init_config().size(NUM_ENTRIES).enable(), dump_ts_array_cb,
-                               dump_table_state_cb);
+    TableRollover<Double_stamp> ttable(Table_init_config().size(NUM_ENTRIES).enable(),
+                                       dump_ts_array_cb, dump_table_state_cb);
     Int_dumper int_dumper;
-    Table<int> itable(Table_init_config().size(NUM_ENTRIES).oneshot().enable(),
-                      std::ref(int_dumper), dump_table_state_cb);
-    Table_manager table_mgr({{"time", ttable}, {"int", itable}}, dump_name_cb);
+    TableOneshot<int> itable(Table_init_config().size(NUM_ENTRIES).enable(), std::ref(int_dumper),
+                             dump_table_state_cb);
+    Table<int> itable2(Table_init_config().size(NUM_ENTRIES).enable().oneshot(), std::ref(int_dumper),
+                             dump_table_state_cb);
+    Table_manager table_mgr({{"time", ttable}, {"int-oneshot", itable}, {"int-select", itable2}}, dump_name_cb);
 
-    event_generator_init(ttable, itable);
+    event_generator_init(ttable, itable, itable2);
 
     Operator oper(table_mgr);
     oper.run();

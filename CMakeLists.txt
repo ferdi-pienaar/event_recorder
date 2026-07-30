@@ -23,7 +23,7 @@ endfunction()
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
 
 add_library(event_recorder
-    src/record_table_config.cpp
+    src/record_table_init_config.cpp
     src/record_table_manager.cpp
 )
 # Alias allows clients to use namespace for both embedded and installed builds.
