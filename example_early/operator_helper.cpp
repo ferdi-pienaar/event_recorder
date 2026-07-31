@@ -24,7 +24,7 @@ void dump_table_state_cb(const Table_op_itf &t)
     std::cout << "stopped " << t.is_stopped() << std::endl;
 }
 
-void dump_name_cb(const std::string &name)
+void operator_out_cb(const std::string &msg)
 {
-    std::cout << "table '" << name << "'" << std::endl;
+    std::cout << msg;
 }

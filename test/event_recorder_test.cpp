@@ -434,13 +434,13 @@ TEST_F(Record_table_manager_test, dump_state_fail)
     EXPECT_FALSE(mgr.dump_tables_state("tab"));
 }
 
-// As a side-effect of doing other operation, mgr outputs the names of the tables that sub-string.
+// As a side-effect of doing other operation, mgr outputs the names of the tables that match sub-string.
 TEST_F(Record_table_manager_test, names)
 {
     EXPECT_TRUE(mgr.dump_tables("f"));
 
     ASSERT_EQ(3, name_spy.names.size());
-    EXPECT_EQ("float-table", name_spy.names[0]);
-    EXPECT_EQ("float-table2", name_spy.names[1]);
-    EXPECT_EQ("ftab3", name_spy.names[2]);
+    EXPECT_EQ("Table 'float-table'\n", name_spy.names[0]);
+    EXPECT_EQ("Table 'float-table2'\n", name_spy.names[1]);
+    EXPECT_EQ("Table 'ftab3'\n", name_spy.names[2]);
 }

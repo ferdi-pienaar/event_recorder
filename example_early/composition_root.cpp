@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 {
     ev_gen.run();
 
-    Table_manager table_mgr({{"time", table}}, dump_name_cb);
+    Table_manager table_mgr({{"time", table}}, operator_out_cb);
     Operator oper(table_mgr);
 
     ev_gen.run();

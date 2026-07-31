@@ -146,5 +146,8 @@ This library is loosely coupled to its clients:
 - The client can change the functions that dump entries without changing the library or changing the code that manages and displays the tables (in operator.cpp in the example).
 - In the client code, only composition_root.cpp depends on the library implementation; operator.cpp and operator_helper.cpp depend only on an interface, record_table_manager_itf.h, and event_generator.cpp depends only on another interface, record_table_event_itf.h. This makes operator.cpp, operator_helper.cpp and event_generator.cpp testable independently of this library.
 
+# Performance
+When recording an event, there is some overhead associated with checking if the table is in oneshot or rollover mode, and, if in oneshot mode, stopping data gathering if the table is full. If performance is critical, use the Table variant TableRollover, which is hardcoded to rollover mode, or TableOneshot, hardcoded to oneshot mode. For these variants, the rollover/oneshot mode cannot be changed at run-time.
+
 # Todo
-Manager commands could return more detailed error than 'command failed on 1 or more tables', or report using the existing dump_name callback, whose name could be changed to indicate more general use.
+Table operator methods could return more detailed error than true/false.

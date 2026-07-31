@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
                              dump_table_state_cb);
     Table<int> itable2(Table_init_config().size(NUM_ENTRIES).enable().oneshot(), std::ref(int_dumper),
                              dump_table_state_cb);
-    Table_manager table_mgr({{"time", ttable}, {"int-oneshot", itable}, {"int-select", itable2}}, dump_name_cb);
+    Table_manager table_mgr({{"time", ttable}, {"int-oneshot", itable}, {"int-select", itable2}}, operator_out_cb);
 
     event_generator_init(ttable, itable, itable2);
 

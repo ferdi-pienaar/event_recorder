@@ -3,13 +3,14 @@
  */
 #include "record_table_manager.h"
 #include "record_table_op_itf.h"
+#include <sstream>
 
 namespace Event_record
 {
 
 Table_manager::Table_manager(const std::map<std::string, Table_op_itf &> &tables,
-                             DUMP_NAME_CALLBACK dump_name)
-    : m_tables(tables), m_dump_name(dump_name)
+                             OPERATOR_OUTPUT_CALLBACK op_out)
+    : m_tables(tables), m_operator_out(op_out)
 {
 }
 
@@ -68,14 +69,21 @@ bool Table_manager::do_tables(std::string substring,
         }
 
         // Found a matching table: output its name so client knows which tables matched its input.
-        if (m_dump_name != nullptr)
+        if (m_operator_out != nullptr)
         {
-            m_dump_name(iter->first);
+            std::ostringstream out;
+            out << "Table '" << iter->first << "'" << std::endl;
+            m_operator_out(out.str());
         }
         auto &table = iter->second;
         if (table_fn(table) == false)
         {
-            // result is 'fail' if the command fails on any table.
+            if (m_operator_out != nullptr)
+            {
+                std::ostringstream out;
+                out << "Operation failed on table '" << iter->first << "'" << std::endl;
+                m_operator_out(out.str());
+            }
             result = false;
         }
     }

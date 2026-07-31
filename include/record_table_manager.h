@@ -26,10 +26,10 @@ class Table_op_itf;
 class Table_manager : public Table_manager_interface
 {
 public:
-    using DUMP_NAME_CALLBACK = std::function<void(const std::string &)>;
+    using OPERATOR_OUTPUT_CALLBACK = std::function<void(const std::string &)>;
 
     Table_manager(const std::map<std::string, Table_op_itf &> &,
-                  DUMP_NAME_CALLBACK dump_name = nullptr);
+                  OPERATOR_OUTPUT_CALLBACK op_out = nullptr);
     bool dump_tables(std::string substring) const override;
     bool enable_tables(std::string substring, bool ena) const override;
     bool oneshot_tables(std::string substring, bool one) const override;
@@ -41,7 +41,7 @@ private:
     bool do_tables(std::string substring, std::function<bool(Table_op_itf &)>) const;
 
     std::map<std::string, Table_op_itf &> m_tables;
-    const DUMP_NAME_CALLBACK m_dump_name = nullptr;
+    const OPERATOR_OUTPUT_CALLBACK m_operator_out = nullptr;
 };
 
 } // namespace Event_record

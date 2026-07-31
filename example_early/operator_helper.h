@@ -13,4 +13,4 @@ struct timespec;
 void dump_ts_cb(const timespec &entry);
 
 void dump_table_state_cb(const Event_record::Table_op_itf &t);
-void dump_name_cb(const std::string &);
+void operator_out_cb(const std::string &);
