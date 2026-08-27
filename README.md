@@ -20,7 +20,6 @@ The following diagram shows the relationship between the classes in the library 
 - The Operator displays and manages tables, via their Table_manager.
 
 ```mermaid
-
 ---
 config:
   layout: elk
