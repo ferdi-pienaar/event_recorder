@@ -24,16 +24,17 @@ void Operator::run()
 
 // Read line from stdin and make corresponding calls to Table Manager.
 // Example commands: "enable": enable all tables
-//                   "e": enable all tables
-//                   "si 10": set all tables to size 10.
-//                   "si 12 ti": set to size 12 the tables with names including string "ti"
+//                   "e": enable all tables, since 'e' suffices to identify the command.
+//                   "d ti": dump tables with names including string "ti"
+//                   "si ti 100": set the size of the tables with names including string "ti" to 100.
+//                   "si * 10": set all tables to size 10.
 // You may use only the initial letters of each command, but must write at least "si" to
-// distinguish "size" from "state" and "di" to distinguish "disable" from "dump".
+// distinguish "size" from "state", and "di" to distinguish "disable" from "dump".
 // Reading cin into a string and then parsing that may be clumsy, but it means I don't have to flush
 // cin after each command.
 bool Operator::handle_command()
 {
-    std::cout << "handle_command: dump, enable, disable, state, size, one, roll, clear"
+    std::cout << "handle_command: dump, state, enable, disable, oneshot, rollover, clear, size"
               << std::endl;
 
     std::string input;
@@ -41,52 +42,48 @@ bool Operator::handle_command()
     std::istringstream line(input);
 
     std::string cmd;
-    line >> cmd;
-    std::string name_ss;
+    std::string name_ss; // Apply action to the tables whose names match this substring.
+    line >> cmd >> name_ss;
+    if (name_ss == "*")
+    {
+        // Empty name substring has the intended effect: match all tables.
+        name_ss = "";
+    }
+
     if (std::string("dump").rfind(cmd, 0) == 0) // Before "disable", so "d" is "dump" not "disable".
     {
-        line >> name_ss;
         return m_mgr.dump_tables(name_ss);
     }
     if (std::string("state").rfind(cmd, 0) == 0) // Before "size", so "s" is "state" not "size".
     {
-        line >> name_ss;
         return m_mgr.dump_tables_state(name_ss);
     }
     if (std::string("enable").rfind(cmd, 0) == 0)
     {
-        line >> name_ss;
         return m_mgr.enable_tables(name_ss, true);
     }
     if (std::string("disable").rfind(cmd, 0) == 0)
     {
-        line >> name_ss;
         return m_mgr.enable_tables(name_ss, false);
     }
     if (std::string("oneshot").rfind(cmd, 0) == 0)
     {
-        line >> name_ss;
         return m_mgr.oneshot_tables(name_ss, true);
     }
     if (std::string("rollover").rfind(cmd, 0) == 0)
     {
-        line >> name_ss;
         return m_mgr.oneshot_tables(name_ss, false);
     }
     if (std::string("clear").rfind(cmd, 0) == 0)
     {
-        line >> name_ss;
         return m_mgr.clear_tables(name_ss);
     }
     if (std::string("size").rfind(cmd, 0) == 0)
     {
-        unsigned size;
-        line >> size >> name_ss;
+        unsigned size = 0;
+        line >> size;
         return m_mgr.size_tables(name_ss, size);
     }
-    else
-    {
-        std::cout << "unknown command: " << cmd << std::endl;
-        return false;
-    }
+    std::cout << "unknown command: " << cmd << std::endl;
+    return false;
 }
