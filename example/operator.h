@@ -19,7 +19,7 @@ public:
 private:
     bool handle_command() const;
     bool handle_command(const std::string &cmd, std::istringstream &line,
-                        const std::function<bool(std::string)> &matcher) const;
+                        const std::function<bool(const std::string &)> &matcher) const;
 
     const Event_record::Table_manager_interface &m_mgr;
 };

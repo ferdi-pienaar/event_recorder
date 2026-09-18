@@ -37,14 +37,14 @@ target_include_directories(event_recorder
 )
 
 install(DIRECTORY include/ DESTINATION include)
-# Create export set event_recorderTargets containing event_recorder
+# Install the library and create package 'export set' descriptor event_recorderTargets.
 install(TARGETS event_recorder EXPORT event_recorderTargets)
-# Write event_recorderTargets to disk
+# Write package 'export set' to a file. It allows clients to import the package.
 install(EXPORT event_recorderTargets
         FILE event_recorderTargets.cmake
         NAMESPACE event_recorder::
         DESTINATION lib/cmake/event_recorder)
-#
+# Write package configuration file; it allows clients to find the package descriptor file.
 install(FILES cmake/event_recorderConfig.cmake
         DESTINATION lib/cmake/event_recorder)
 

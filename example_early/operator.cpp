@@ -45,16 +45,16 @@ bool Operator::handle_command() const
     std::regex r(match_string);
 
     // Lambda returns true if match_string is a regular expression that matches the table's name.
-    auto matcher = [&](std::string table_name)
+    auto matcher = [&](const std::string &table_name)
     {
-        return regex_match(table_name, r);
+        return regex_search(table_name, r);
     };
 
     return handle_command(cmd, line, matcher);
 }
 
 bool Operator::handle_command(const std::string &cmd, std::istringstream &line,
-                              const std::function<bool(std::string)> &matcher) const
+                              const std::function<bool(const std::string &)> &matcher) const
 {
     if (std::string("dump").rfind(cmd, 0) == 0) // Before "disable", so "d" is "dump" not "disable".
     {

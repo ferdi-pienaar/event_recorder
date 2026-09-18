@@ -50,7 +50,7 @@ bool Operator::handle_command() const
     }
 
     // Lambda returns true if match_string is a substring of a table's name.
-    auto matcher = [&](std::string table_name)
+    auto matcher = [&](const std::string &table_name)
     {
         auto pos = table_name.find(match_string);
         return pos != std::string::npos;
@@ -60,7 +60,7 @@ bool Operator::handle_command() const
 }
 
 bool Operator::handle_command(const std::string &cmd, std::istringstream &line,
-                              const std::function<bool(std::string)> &matcher) const
+                              const std::function<bool(const std::string &)> &matcher) const
 {
     if (std::string("dump").rfind(cmd, 0) == 0) // Before "disable", so "d" is "dump" not "disable".
     {

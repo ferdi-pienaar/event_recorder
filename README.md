@@ -82,7 +82,7 @@ classDiagram
     Table_op_itf <-- Table State Dumper
     Table_manager --> Table_op_itf : manages
     Table_manager ..|> Table_manager_interface : implements
-    Table_manager_interface  <-- Operator : display and manage tables
+    Table_manager_interface  <-- Operator : displays and manages tables
 
     Composition_root *--> Table_manager
     Composition_root *--> Table
