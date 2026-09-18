@@ -16,47 +16,48 @@ Table_manager::Table_manager(const std::map<std::string, Table_op_itf &> &tables
 
 // xxx should tables be disabled?
 // It seems useful since we don't know what may be most convenient for client operator...
-bool Table_manager::dump_tables(std::string substring) const
+bool Table_manager::dump_tables(const std::function<bool(const std::string &)> &name_matcher) const
 {
-    return do_tables(substring, [](Table_op_itf &t) { return t.dump(); });
+    return do_tables(name_matcher, [](Table_op_itf &t) { return t.dump(); });
 }
 
-bool Table_manager::enable_tables(std::string substring, bool enable) const
+bool Table_manager::enable_tables(const std::function<bool(const std::string &)> &name_matcher,
+                                  bool enable) const
 {
-    return do_tables(substring, [&](Table_op_itf &t) { return t.enable(enable); });
+    return do_tables(name_matcher, [&](Table_op_itf &t) { return t.enable(enable); });
 }
 
-bool Table_manager::oneshot_tables(std::string substring, bool one) const
+bool Table_manager::oneshot_tables(const std::function<bool(const std::string &)> &name_matcher,
+                                   bool one) const
 {
-    return do_tables(substring, [&](Table_op_itf &t) { return t.oneshot(one); });
+    return do_tables(name_matcher, [&](Table_op_itf &t) { return t.oneshot(one); });
 }
 
-bool Table_manager::size_tables(std::string substring, unsigned size) const
+bool Table_manager::size_tables(const std::function<bool(const std::string &)> &name_matcher,
+                                unsigned size) const
 {
-    return do_tables(substring, [&](Table_op_itf &t) { return t.set_size(size); });
+    return do_tables(name_matcher, [&](Table_op_itf &t) { return t.set_size(size); });
 }
 
-bool Table_manager::clear_tables(std::string substring) const
+bool Table_manager::clear_tables(const std::function<bool(const std::string &)> &name_matcher) const
 {
-    return do_tables(substring, [](Table_op_itf &t) { return t.clear(); });
+    return do_tables(name_matcher, [](Table_op_itf &t) { return t.clear(); });
 }
 
-bool Table_manager::dump_tables_state(std::string substring) const
+bool Table_manager::dump_tables_state(
+    const std::function<bool(const std::string &)> &name_matcher) const
 {
-    return do_tables(substring, [](Table_op_itf &t) { return t.dump_state(); });
+    return do_tables(name_matcher, [](Table_op_itf &t) { return t.dump_state(); });
 }
 
-// Call table_fn for all tables in this manager that have names that match substring.
+// Call table_fn for all tables in this manager that have names that return true from matcher.
 // xxx could we return an error string for a failed operation?
-bool Table_manager::do_tables(std::string substring,
-                              std::function<bool(Table_op_itf &)> table_fn) const
+bool Table_manager::do_tables(const std::function<bool(const std::string &)> &name_matcher,
+                              const std::function<bool(Table_op_itf &)> &table_fn) const
 {
-    // Lambda returns true if substring is in the Table's key.
+    // Lambda returns true iff the user-provided name_matcher matches the Table's name.
     auto matcher = [&](const std::pair<std::string, Table_op_itf &> &item)
-    {
-        auto pos = item.first.find(substring);
-        return pos != std::string::npos;
-    };
+    { return name_matcher(item.first); };
 
     bool result = true; // Success, unless something fails below.
     for (auto iter = m_tables.begin();; ++iter)

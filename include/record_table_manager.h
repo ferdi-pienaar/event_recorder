@@ -14,9 +14,7 @@
  */
 #pragma once
 #include "record_table_manager_itf.h"
-#include <functional>
 #include <map>
-#include <string>
 
 namespace Event_record
 {
@@ -30,15 +28,17 @@ public:
 
     Table_manager(const std::map<std::string, Table_op_itf &> &,
                   OPERATOR_OUTPUT_CALLBACK op_out = nullptr);
-    bool dump_tables(std::string substring) const override;
-    bool enable_tables(std::string substring, bool ena) const override;
-    bool oneshot_tables(std::string substring, bool one) const override;
-    bool size_tables(std::string substring, unsigned size) const override;
-    bool clear_tables(std::string substring) const override;
-    bool dump_tables_state(std::string substring) const override;
+    bool dump_tables(const std::function<bool(const std::string &)> &) const override;
+    bool enable_tables(const std::function<bool(const std::string &)> &, bool ena) const override;
+    bool oneshot_tables(const std::function<bool(const std::string &)> &, bool one) const override;
+    bool size_tables(const std::function<bool(const std::string &)> &,
+                     unsigned size) const override;
+    bool clear_tables(const std::function<bool(const std::string &)> &) const override;
+    bool dump_tables_state(const std::function<bool(const std::string &)> &) const override;
 
 private:
-    bool do_tables(std::string substring, std::function<bool(Table_op_itf &)>) const;
+    bool do_tables(const std::function<bool(const std::string &)> &,
+                   const std::function<bool(Table_op_itf &)> &) const;
 
     std::map<std::string, Table_op_itf &> m_tables;
     const OPERATOR_OUTPUT_CALLBACK m_operator_out = nullptr;

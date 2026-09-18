@@ -1,6 +1,9 @@
 /*
  */
 #pragma once
+#include <functional>
+#include <sstream>
+#include <string>
 
 namespace Event_record
 {
@@ -11,10 +14,12 @@ class Operator
 {
 public:
     Operator(const Event_record::Table_manager_interface &mgr) : m_mgr(mgr) {}
-    void run();
+    void run() const;
 
 private:
-    bool handle_command();
+    bool handle_command() const;
+    bool handle_command(const std::string &cmd, std::istringstream &line,
+                        const std::function<bool(std::string)> &matcher) const;
 
     const Event_record::Table_manager_interface &m_mgr;
 };

@@ -5,10 +5,20 @@
 #include "record_table_iterator.h"
 #include "record_table_manager.h"
 #include "gtest/gtest.h"
-#include <array>
 #include <vector>
 
 using namespace Event_record;
+
+// Helper function: return a lambda that returns true if sub_string appears in table_name.
+std::function<bool(const std::string &)> get_substring_matcher(const std::string &sub_string)
+{
+    auto matcher = [&](std::string table_name)
+    {
+        auto pos = table_name.find(sub_string);
+        return pos != std::string::npos;
+    };
+    return matcher;
+}
 
 class Record_table_default_config_test : public testing::Test
 {
@@ -361,21 +371,21 @@ class Record_table_manager_test : public testing::Test
 // Verify disabled table is enabled by a call to its manager.
 TEST_F(Record_table_manager_test, enable)
 {
-    EXPECT_TRUE(mgr.enable_tables("int-tab", true));
+    EXPECT_TRUE(mgr.enable_tables(get_substring_matcher("int-tab"), true));
     EXPECT_TRUE(itable.enabled());
 }
 
 // Verify disabled table is set oneshot by a call to its manager.
 TEST_F(Record_table_manager_test, oneshot)
 {
-    EXPECT_TRUE(mgr.oneshot_tables("int-tab", true));
+    EXPECT_TRUE(mgr.oneshot_tables(get_substring_matcher("int-tab"), true));
     EXPECT_TRUE(itable.oneshot());
 }
 
 // Verify table size is changed by a call to its manager.
 TEST_F(Record_table_manager_test, set_size)
 {
-    EXPECT_TRUE(mgr.size_tables("int-tab", 14));
+    EXPECT_TRUE(mgr.size_tables(get_substring_matcher("int-tab"), 14));
     EXPECT_EQ(14, itable.size());
 }
 
@@ -385,14 +395,14 @@ TEST_F(Record_table_manager_test, clear)
     EXPECT_EQ(1, ftable.get_num_written_entries());
 
     // Must disable the table for writing before we clear it.
-    EXPECT_TRUE(mgr.enable_tables("float-table", false));
-    EXPECT_TRUE(mgr.clear_tables("float-table"));
+    EXPECT_TRUE(mgr.enable_tables(get_substring_matcher("float-table"), false));
+    EXPECT_TRUE(mgr.clear_tables(get_substring_matcher("float-table")));
     EXPECT_EQ(0, ftable.get_num_written_entries());
 }
 
 TEST_F(Record_table_manager_test, dump)
 {
-    EXPECT_TRUE(mgr.dump_tables("table"));
+    EXPECT_TRUE(mgr.dump_tables(get_substring_matcher("table")));
 
     ASSERT_EQ(1, float_dump_spy.store.size());
     EXPECT_EQ(2.5, float_dump_spy.store.front());
@@ -401,7 +411,7 @@ TEST_F(Record_table_manager_test, dump)
 // Manager dumps data from more than 1 table that it owns, but only for the tables that match the substring.
 TEST_F(Record_table_manager_test, mgr_match2)
 {
-    EXPECT_TRUE(mgr.dump_tables("table"));
+    EXPECT_TRUE(mgr.dump_tables(get_substring_matcher("table")));
 
     // Nothing dumped by this table because it is empty.
     EXPECT_EQ(0, int_dump_spy.store.size());
@@ -419,7 +429,7 @@ TEST_F(Record_table_manager_test, mgr_match2)
 // Verify that record table responds to its manager's dump_state request.
 TEST_F(Record_table_manager_test, dump_state)
 {
-    EXPECT_TRUE(mgr.dump_tables_state("float-table2"));
+    EXPECT_TRUE(mgr.dump_tables_state(get_substring_matcher("float-table2")));
 
     ASSERT_TRUE(state_spy.called);
     EXPECT_TRUE(state_spy.enabled);
@@ -431,13 +441,13 @@ TEST_F(Record_table_manager_test, dump_state)
 // Fail because some of the named tables don't have a registered dump-state callback.
 TEST_F(Record_table_manager_test, dump_state_fail)
 {
-    EXPECT_FALSE(mgr.dump_tables_state("tab"));
+    EXPECT_FALSE(mgr.dump_tables_state(get_substring_matcher("tab")));
 }
 
 // As a side-effect of doing other operation, mgr outputs the names of the tables that match sub-string.
 TEST_F(Record_table_manager_test, names)
 {
-    EXPECT_TRUE(mgr.dump_tables("f"));
+    EXPECT_TRUE(mgr.dump_tables(get_substring_matcher("f")));
 
     ASSERT_EQ(3, name_spy.names.size());
     EXPECT_EQ("Table 'float-table'\n", name_spy.names[0]);

@@ -7,12 +7,14 @@ The type of data recorded by an event is chosen by the user of this library, but
 
 The management of the tables is decoupled from the types of event recorded in the tables: one manager handles many tables, each possibly recording a different type of event. Due to the decoupling between tables and the management interface, when a new table recording a new event type is added, the code that interfaces to the CLI for displaying and managing the tables does not have to be modified or re-compiled.
 
-Within the manager, each table has a name, and by carefully assigning the names the user can group the tables and manage them in groups. For example, say there are 4 tables for packet-handling events, named according to the protocols they handle and the packet direction: "rtcp-upstream", "rtcp-downstream", "dhcp-upstream", and "dhcp-downstream". The command "dump downstr" would dump the tables whose names contain this string, "rtcp-downstream" and "dhcp-downstream"; similarly "dump dhcp" would dump tables "dhcp-upstream" and "dhcp-downstream". Note that the manager has no knowledge of the domain, it selects tables by matching a string to the table names.
+Within the manager, each table has a name, and by carefully assigning the names the user can group the tables and manage them in groups. For example, say there are 4 tables for packet-handling events, named according to the protocols they handle and the packet direction: "rtcp-upstream", "rtcp-downstream", "dhcp-upstream", and "dhcp-downstream". The user provides a string-matching function to select which tables the operator's commands apply to. For example, with a function that checks if the input string is a sub-string of the table name, the command "dump down" would dump the tables whose names contain this string, namely "rtcp-downstream" and "dhcp-downstream"; similarly "dump dhcp" would dump tables "dhcp-upstream" and "dhcp-downstream". The user could also provide a function that uses regular expressions to select which tables commands apply to. Example code is provided for both the sub-string-matching and regular expression cases, see below.
+
+Note that the manager has no knowledge of the domain, it selects tables by matching a string to the table names.
 
 Tables are initialized with these properties, all of which can be changed at run-time:
 - size: the number of entries that can be written to the table
 - enabled or disabled: whether new events can be saved to the table or not.
-- oneshot/rollover: one-shot tables stop recording when they are full; in rollover tables new events overwrite old ones.
+- oneshot/rollover: one-shot tables stop recording when they are full; in rollover tables new events overwrite old ones. There is also an option to hard-code tables to either one-shot or rollover mode; the mode can't be changed at run-time, but there is a small improvement in performance.
 
 The following diagram shows the relationship between the classes in the library (namespace Event_record), and the client entities that use the library.
 - The Composition_root creates the Tables and associates them with their Table_manager.
@@ -57,12 +59,12 @@ classDiagram
         class Table
         class Table_manager
         class Table_manager_interface <<interface>> {
-            +dump_tables(name)
-            +enable_tables(name, bool)
-            +oneshot_tables(name, bool)
-            +size_tables(name, unsigned)
-            +clear_tables(name)
-            +dump_tables_state(name)
+            +dump_tables(name_matcher)
+            +enable_tables(name_matcher, bool)
+            +oneshot_tables(name_matcher, bool)
+            +size_tables(name_matcher, unsigned)
+            +clear_tables(name_matcher)
+            +dump_tables_state(name_matcher)
         }
 
         class Table_config {
@@ -117,10 +119,14 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=<install-prefix>
 This project includes two directories containing working sample applications.
 
 ## Directory 'example'
-dependency_root.cpp defines two tables managed by one manager. One's entry type is an array of two timestamps, corresponding to the beginning and end of an event. The other's entry type is an integer.
+dependency_root.cpp defines three tables managed by one manager. One's entry type is an array of two timestamps, corresponding to the beginning and end of an event. The other tables have integer entry type. In addition, one table is an instance of TableRollover (i.e. its type hard-coded 'rollover'), one table is an instance of TableOneshot (i.e. its type is hard-code 'one-shot'), and the third table can be modified at run-time to be either 'rollover' or 'one-shot'.
+
+In this example, the function that selects which tables to apply operator commands to is a sub-string matcher: the commands apply to tables whose names contain the sub-string provided by the operator.
 
 ## Directory 'example_early'
 This example shows how event_recorder records events that happen before main() runs, because the event_recorder's initialization dependencies can be satisfied before main() runs.
+
+In this example, the function that selects which tables to apply operator commands to is a regular expression matcher: the commands apply to tables whose names match the regular expression provided by the operator.
 
 # The manager interface
 The operator controls the table via the manager interface. The following can be done via the manager interface:
@@ -144,6 +150,7 @@ This library is loosely coupled to its clients:
 - The user can change the type of ENTRY in the Tables, and neither the event_recorder library code nor the code that manages and displays the tables (in operator.cpp) changes; the user just defines ENTRY and a function or class that dumps the contents of an entry, e.g. prints it to stdout.
 - The client can change the functions that dump entries without changing the library or changing the code that manages and displays the tables (in operator.cpp in the example).
 - In the client code, only composition_root.cpp depends on the library implementation; operator.cpp and operator_helper.cpp depend only on an interface, record_table_manager_itf.h, and event_generator.cpp depends only on another interface, record_table_event_itf.h. This makes operator.cpp, operator_helper.cpp and event_generator.cpp testable independently of this library.
+- The client provides, and can change, the method by which the tables are selected that an operator command applies to. The client can provide, for example, functions that implement sub-string matching, or regular expression matching.
 
 # Performance
 When recording an event, there is some overhead associated with checking if the table is in oneshot or rollover mode, and, if in oneshot mode, stopping data gathering if the table is full. If performance is critical, use the Table variant TableRollover, which is hardcoded to rollover mode, or TableOneshot, hardcoded to oneshot mode. For these variants, the rollover/oneshot mode cannot be changed at run-time.
