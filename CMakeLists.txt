@@ -33,10 +33,10 @@ add_library(event_recorder::event_recorder ALIAS event_recorder)
 target_include_directories(event_recorder
     PUBLIC
        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-       $<INSTALL_INTERFACE:include>
+       $<INSTALL_INTERFACE:include/event_recorder>
 )
 
-install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY include/ DESTINATION include/event_recorder)
 # Install the library and create package 'export set' descriptor event_recorderTargets.
 install(TARGETS event_recorder EXPORT event_recorderTargets)
 # Write package 'export set' to a file. It allows clients to import the package.
